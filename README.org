@@ -83,9 +83,9 @@
         to find out list of codes that don't have initial regular reports for the given time (a sign of market exit)
         and exclude these codes from being scraped.
 
-        [[file:crawl/crawl/spiders/securities/china/StockFdmtBalanceSheetChinaInitialSpider.py][StockFdmtBalanceSheetChinaInitialSpider]]
-        [[file:crawl/crawl/spiders/securities/china/StockFdmtCashflowSheetChinaInitialSpider.py][StockFdmtCashflowSheetChinaInitialSpider]] 
-        [[file:crawl/crawl/spiders/securities/china/StockFdmtProfitSheetChinaInitialSpider.py][StockFdmtProfitSheetChinaInitialSpider]]
+       - [[file:crawl/crawl/spiders/securities/china/StockFdmtBalanceSheetChinaInitialSpider.py][StockFdmtBalanceSheetChinaInitialSpider]]
+       - [[file:crawl/crawl/spiders/securities/china/StockFdmtCashflowSheetChinaInitialSpider.py][StockFdmtCashflowSheetChinaInitialSpider]] 
+       - [[file:crawl/crawl/spiders/securities/china/StockFdmtProfitSheetChinaInitialSpider.py][StockFdmtProfitSheetChinaInitialSpider]]
 
         After the execution of 3 spiders scraping initial sheets and before proceeding further,
         [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]] should be called to ensure there is no valid code missing initial sheets, and
