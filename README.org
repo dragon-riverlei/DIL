@@ -19,51 +19,51 @@
 
 ** Data
 *** Storage
-      data retrieved by scrapy crawler is stored as files under *feeds*
-      data parsed from the above files are stored in a /postgres/ database named *securities*, /usr/local/var/postgres
+      - data retrieved by scrapy crawler is stored as files under *feeds*
+      - data parsed from the above files are stored in a /postgres/ database named *securities*, /usr/local/var/postgres
 
 *** A stock in Shanghai and Shenzhen
 **** normalization of units 
-      CMB:  元
-      股本: 万股 
+      - CMB:  元
+      - 股本: 万股 
 **** inception
 ***** stock code list: retrieve all available stock codes, json files from stock.gtimg.cn
 ***** stock list: retrieve all available stocks based on the above code list, json files from qt.gtimg.cn
 **** initial
 ***** stock day quote: retrieve day quote of all available stocks, json files from qt.gtimg.cn
-      cap, 市值, 元
+      - cap, 市值, 元
 ***** balance sheet: with all available reporting date, csv file from sina
-      元
+      - 元
 ***** cash flow sheet: with all available reporting date, csv file from sina
-      元
+      - 元
 ***** profit sheet: with all available reporting date, csv file from sina
-      元
+      - 元
 ***** dividend: since 2011-6-30, json file from eastmoney 
-      元
+      - 元
 ***** stock structure: json file from eastmoney 
-      万股
+      - 万股
 **** delta
 ***** stock code list: yearly at least, json files from stock.gtimg.cn
 ***** stock list: yearly at least, json files from qt.gtimg.cn
 ***** stock day quote: weekly at least, json files from qt.gtimg.cn
-      cap, 市值, 万元
+      - cap, 市值, 万元
 ***** balance sheet: quarterly aligned with the reporting date, parsed html
-      万元
+      - 万元
 ***** cash flow sheet: quarterly aligned with the reporting date, parsed html
-      万元
+      - 万元
 ***** profit sheet: quarterly aligned with the reporting date, parsed html
-      万元
+      - 万元
 ***** dividend: 2 times per year, json file from eastmoney 
-      元
+      - 元
 ***** stock structure: 2 times per year, json file from eastmoney 
-      万股
+      - 万股
 **** Workflow
       The data workflow is =staged=.
-      =Stage 0=: stock code list and stock list
-      =Stage 1=: scrape, clean, validate
-      =Stage 2=: write to DB
-      =stage 3=: more rigorous validation of data at DB side
-      =Stage 4=: analyze from DB
+      - =Stage 0=: stock code list and stock list
+      - =Stage 1=: scrape, clean, validate
+      - =Stage 2=: write to DB
+      - =Stage 3=: more rigorous validation of data at DB side
+      - =Stage 4=: analyze from DB
       The latter stage depends and only depends on the final output of the former stage.
 
 ***** Stage 0: stock code list and stock list
@@ -129,28 +129,28 @@
 ***** Stage 2: write to DB
 ****** 1st: table definition for the regular reports
 ******* tables whose fields are defined manually
-          securities_code
-          securities_dividend
-          securities_day_quote
-          securities_kpi
-          securities_transaction
-          securities_holding
-          cash_holding
+          - securities_code
+          - securities_dividend
+          - securities_day_quote
+          - securities_kpi
+          - securities_transaction
+          - securities_holding
+          - cash_holding
 
 ******* tables whose fields are defined programmatic-ally
-          securities_balance_sheet_bank
-          securities_balance_sheet_general
-          securities_balance_sheet_securities
-          securities_balance_sheet_insurance
-          securities_cash_flow_sheet_bank
-          securities_cash_flow_sheet_general
-          securities_cash_flow_sheet_securities
-          securities_cash_flow_sheet_insurance
-          securities_profit_sheet_bank
-          securities_profit_sheet_general
-          securities_profit_sheet_securities
-          securities_profit_sheet_insurance
-          securities_stock_structure
+          - securities_balance_sheet_bank
+          - securities_balance_sheet_general
+          - securities_balance_sheet_securities
+          - securities_balance_sheet_insurance
+          - securities_cash_flow_sheet_bank
+          - securities_cash_flow_sheet_general
+          - securities_cash_flow_sheet_securities
+          - securities_cash_flow_sheet_insurance
+          - securities_profit_sheet_bank
+          - securities_profit_sheet_general
+          - securities_profit_sheet_securities
+          - securities_profit_sheet_insurance
+          - securities_stock_structure
           
           [[file:sh/print_regular_report_fields.sh][print_regular_report_fields.sh]] is used to generate the fields for all balance, cash flow and profit tables.
           [[file:sh/print_stock_structure_sql_fields.sh][print_stock_structure_sql_fields.sh]] is used to generate the fields for table ~securities_stock_structure~.
@@ -160,8 +160,8 @@
 
 ******* prepare initial/delta regular reports data (balance, cash flow and profit)
           [[file:sh/prepare_regular_report_csv_values.sh][prepare_regular_report_csv_values.sh]] is used to:
-          for initial regular report in csv format, transpose the row and column.
-          for delta regular report in json format, convert from json format to csv format.
+          - for initial regular report in csv format, transpose the row and column.
+          - for delta regular report in json format, convert from json format to csv format.
 
 ******* prepare other regular reports data
           [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh]]
@@ -170,11 +170,11 @@
 
 ****** 3rd: write to DB
         The following scripts are used to load CSV formatted data into DB.
-        [[file:sh/load_regular_report_csv_values_to_db.sh][load_regular_report_csv_values_to_db.sh]]
-        [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh]]
+        [[file:sh/load_regular_report_csv_values_to_db.sh][- load_regular_report_csv_values_to_db.sh]]
+        [[file:sh/load_json_values_to_db.sh][- load_json_values_to_db.sh]]
 
-        [[file:sh/load_values_to_db.sh][load_values_to_db.sh]] and
-        [[file:sh/load_delta_values_to_db.sh][load_delta_values_to_db.sh]] are the facades of preparing / loading data into DB.
+        [[file:sh/load_values_to_db.sh][- load_values_to_db.sh]] and
+        [[file:sh/load_delta_values_to_db.sh][- load_delta_values_to_db.sh]] are the facades of preparing / loading data into DB.
 
 ***** Stage 3: more rigorous validation of data at DB side
         consistency of units
