@@ -24,7 +24,7 @@
 
 *** A stock in Shanghai and Shenzhen
 **** normalization of units 
-      - CMB:  元
+      - RMB:  元
       - 股本: 万股 
 **** inception
 ***** stock code list: retrieve all available stock codes, json files from stock.gtimg.cn
@@ -58,7 +58,7 @@
 ***** stock structure: 2 times per year, json file from eastmoney 
       - 万股
 **** Workflow
-      The data workflow is =staged=.
+      The data workflow is staged.
       - =Stage 0=: stock code list and stock list
       - =Stage 1=: scrape, clean, validate
       - =Stage 2=: write to DB
@@ -77,7 +77,7 @@
           And it writes to [[file:feeds/stock_list_china.jl][feeds/stock_list_china.jl]].
 
 ***** Stage 1: scrape, clean, validate
-****** 1nd: scrape initial regular reports (balance, cash flow and profit)
+****** 1st: scrape initial regular reports (balance, cash flow and profit)
         The following 3 spiders scrape initial regular reports of balance, cash flow and profit for the list of stock codes determined
         by the output of [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]]. This bash script calls [[file:sh/find_stock_list_china_with_absence_regular_report.sh][find_stock_list_china_with_absence_regular_report.sh]]
         to find out list of codes that don't have initial regular reports for the given time (a sign of market exit)
@@ -91,18 +91,18 @@
         [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]] should be called to ensure there is no valid code missing initial sheets, and
         [[file:sh/clean_regular_report_exit_market.sh][clean_regular_report_exit_market.sh]] is better to be called to clean codes that are known to have exited market.
 
-****** 2rd: process initial regular reports (balance, cash flow and profit)
+****** 2nd: process initial regular reports (balance, cash flow and profit)
 ******* [[file:sh/classify_regular_report.sh][classify_regular_report.sh]]
           This bash script compares the list of fields in the initial regular reports and groups the code with the same list.
           In the mean time, a schema of fields list for each group is also generated.
           This is the basis for further group specific processing.
-****** 3th: scrape delta regular reports (balance, cash flow and profit)
+****** 3rd: scrape delta regular reports (balance, cash flow and profit)
         The following 3 spiders scrape delta regular reports of balance, cash flow and profit for the list of stock codes determined
         by the output of [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]]. 
 
-        [[file:crawl/crawl/spiders/securities/china/StockFdmtBalanceSheetChinaDeltaSpider.py][StockFdmtBalanceSheetChinaDeltaSpider]]
-        [[file:crawl/crawl/spiders/securities/china/StockFdmtCashflowSheetChinaDeltaSpider.py][StockFdmtCashflowSheetChinaDeltaSpider]]
-        [[file:crawl/crawl/spiders/securities/china/StockFdmtProfitSheetChinaDeltaSpider.py][StockFdmtProfitSheetChinaDeltaSpider]]
+        - [[file:crawl/crawl/spiders/securities/china/StockFdmtBalanceSheetChinaDeltaSpider.py][StockFdmtBalanceSheetChinaDeltaSpider]]
+        - [[file:crawl/crawl/spiders/securities/china/StockFdmtCashflowSheetChinaDeltaSpider.py][StockFdmtCashflowSheetChinaDeltaSpider]]
+        - [[file:crawl/crawl/spiders/securities/china/StockFdmtProfitSheetChinaDeltaSpider.py][StockFdmtProfitSheetChinaDeltaSpider]]
 
         After the execution of 3 spiders scraping delta sheets and before proceeding further,
         [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]] should be called to ensure there is no valid code missing delta sheets.
@@ -121,8 +121,8 @@
         The following spiders scrape delta regular reports other than balance, cash flow and profit for the list of stock codes determined
         by the output of [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]]. 
 
-        [[file:crawl/crawl/spiders/securities/china/StockStructureChinaSpider.py][StockStructureChinaSpider]] for stock structure,
-        [[file:crawl/crawl/spiders/securities/china/StockDividendChinaSpider.py][StockDividendChinaSpider]] for dividend.
+       - [[file:crawl/crawl/spiders/securities/china/StockStructureChinaSpider.py][StockStructureChinaSpider]] for stock structure
+       - [[file:crawl/crawl/spiders/securities/china/StockDividendChinaSpider.py][StockDividendChinaSpider]] for dividend
 
         [[file:sh/check_regular_stock_structure_values.sh][check_regular_stock_structure_values.sh]] for sanity check of values of stock structure.
 
@@ -170,11 +170,11 @@
 
 ****** 3rd: write to DB
         The following scripts are used to load CSV formatted data into DB.
-        [[file:sh/load_regular_report_csv_values_to_db.sh][- load_regular_report_csv_values_to_db.sh]]
-        [[file:sh/load_json_values_to_db.sh][- load_json_values_to_db.sh]]
+        - [[file:sh/load_regular_report_csv_values_to_db.sh][load_regular_report_csv_values_to_db.sh]]
+        - [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh]]
 
-        [[file:sh/load_values_to_db.sh][- load_values_to_db.sh]] and
-        [[file:sh/load_delta_values_to_db.sh][- load_delta_values_to_db.sh]] are the facades of preparing / loading data into DB.
+        - [[file:sh/load_values_to_db.sh][load_values_to_db.sh]] and
+        - [[file:sh/load_delta_values_to_db.sh][load_delta_values_to_db.sh]] are the facades of preparing / loading data into DB.
 
 ***** Stage 3: more rigorous validation of data at DB side
         consistency of units
