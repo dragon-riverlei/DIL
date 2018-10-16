@@ -164,9 +164,9 @@
           - for delta regular report in json format, convert from json format to csv format.
 
 ******* prepare other regular reports data
-          [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh]]
-            [[file:sh/convert_regular_dividend_json_to_csv.jq][convert_regular_dividend_json_to_csv.jq]]
-            [[file:sh/convert_regular_stock_structure_json_to_csv.sh][convert_regular_stock_structure_json_to_csv.sh]] 
+          - [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh]]
+            - [[file:sh/convert_regular_dividend_json_to_csv.jq][convert_regular_dividend_json_to_csv.jq]]
+            - [[file:sh/convert_regular_stock_structure_json_to_csv.sh][convert_regular_stock_structure_json_to_csv.sh]] 
 
 ****** 3rd: write to DB
         The following scripts are used to load CSV formatted data into DB.
