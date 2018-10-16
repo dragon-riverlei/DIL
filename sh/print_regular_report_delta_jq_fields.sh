@@ -62,7 +62,7 @@ function print_jq_fields_extract(){
     echo '| map(sub(",";"";"g"))'
     echo '| map(if . =="--" then "0" else . end)'
     echo '| map(if . | test($numeric_rexp) then . | tonumber else . end)'
-    echo '| map(if . | isnormal then . * 10000 else . end)'
+    echo '| map(if . | isnormal then . * 10000 else . end)'  # 单位从“万元”转换到“元”
     echo "| [\$code, .[]]"
     echo '| @csv'
 }

@@ -55,6 +55,6 @@ class StockDayQuoteChinaSpider(scrapy.Spider):
                 item['price'] = float(quote[3])
                 item['pe_ratio'] = quote[39]
                 item['pb_ratio'] = quote[46]
-                item['cap'] = float(quote[45]) * 100000000.0
+                item['cap'] = float(quote[45])
                 item['date'] = time.strftime("%Y-%m-%d", time.localtime())
                 yield item

@@ -32,7 +32,7 @@ EOF
 load_stock_day_quote_china(){
     local csv_file="stock_day_quote_china.csv"
     local table="securities_day_quote"
-    cat "$1" | jq -r '[.date, .code, .price, .cap, .pe_ratio, .pb_ratio] | @csv' > "$DIL_ROOT"/feeds/"$csv_file"
+    cat "$1" | jq -r '[.date, .code, .price, .cap * 100000000.0, .pe_ratio, .pb_ratio] | @csv' > "$DIL_ROOT"/feeds/"$csv_file" #  市值cap单位从“亿元”转换到“元”
     psql "$db" <<EOF
 \x
 create temp table tmp_table as select * from "$table" with no data;

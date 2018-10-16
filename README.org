@@ -31,7 +31,7 @@
 ***** stock list: retrieve all available stocks based on the above code list, json files from qt.gtimg.cn
 **** initial
 ***** stock day quote: retrieve day quote of all available stocks, json files from qt.gtimg.cn
-      - cap, 市值, 元
+      - cap, 市值, 亿元
 ***** balance sheet: with all available reporting date, csv file from sina
       - 元
 ***** cash flow sheet: with all available reporting date, csv file from sina
@@ -46,7 +46,7 @@
 ***** stock code list: yearly at least, json files from stock.gtimg.cn
 ***** stock list: yearly at least, json files from qt.gtimg.cn
 ***** stock day quote: weekly at least, json files from qt.gtimg.cn
-      - cap, 市值, 万元
+      - cap, 市值, 亿元
 ***** balance sheet: quarterly aligned with the reporting date, parsed html
       - 万元
 ***** cash flow sheet: quarterly aligned with the reporting date, parsed html
