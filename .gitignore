@@ -1,6 +1,7 @@
 *.csv
 *.pyc
 crawl/crawl.log
+crawl/crawl/crawl.log
 
 db/cash_holding.sql
 db/kpi.sql
