@@ -46,19 +46,19 @@ esac
 case "$2" in
     bank)
         schema_file="$DIL_ROOT/feeds/fdmt_"$report_type"_sheet_initial/schemas/000001"
-        fields_folder="$DIL_ROOT/feeds/fdmt_"$report_type"_sheet_initial/fields/schema000001"
+        schema_lst="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/000001.lst
         ;;
     general)
         schema_file="$DIL_ROOT/feeds/fdmt_"$report_type"_sheet_initial/schemas/000002"
-        fields_folder="$DIL_ROOT/feeds/fdmt_"$report_type"_sheet_initial/fields/schema000002"
+        schema_lst="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/000002.lst
         ;;
     securities)
         schema_file="$DIL_ROOT/feeds/fdmt_"$report_type"_sheet_initial/schemas/000686"
-        fields_folder="$DIL_ROOT/feeds/fdmt_"$report_type"_sheet_initial/fields/schema000686"
+        schema_lst="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/000686.lst
         ;;
     insurance)
         schema_file="$DIL_ROOT/feeds/fdmt_"$report_type"_sheet_initial/schemas/601318"
-        fields_folder="$DIL_ROOT/feeds/fdmt_"$report_type"_sheet_initial/fields/schema601318"
+        schema_lst="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/601318.lst
         ;;
     *)
         usage
@@ -69,10 +69,8 @@ if [ "$3" == "" ];then
     usage
 fi
 
-cd "$fields_folder"
-ls > "$DIL_ROOT"/tmp/check_regular_report_delta_fields_possible_codes
 "$DIL_ROOT"/sh/find_stock_list_china_with_absence_regular_report.sh > "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes_to_exclude
-cat "$DIL_ROOT"/tmp/check_regular_report_delta_fields_possible_codes \
+cat "$schema_lst" \
     "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes_to_exclude \
     "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes_to_exclude \
     | sort | uniq -u > "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes
@@ -87,7 +85,6 @@ do
         | uniq -u
 done | sort | uniq
 
-rm "$DIL_ROOT"/tmp/check_regular_report_delta_fields_possible_codes
 rm "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes_to_exclude
 rm "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes
 rm "$DIL_ROOT"/tmp/print_regular_report_fields_filtered_out

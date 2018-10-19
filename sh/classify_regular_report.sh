@@ -38,10 +38,6 @@ esac
 
 function extract_fields(){
     cd "$DIL_ROOT"/"$subfolder"/data
-    rm -rf "$DIL_ROOT"/"$subfolder"/fields
-    rm -rf "$DIL_ROOT"/"$subfolder"/schemas
-    mkdir "$DIL_ROOT"/"$subfolder"/fields
-    mkdir "$DIL_ROOT"/"$subfolder"/schemas
     if [ "$1" == "bs" ] || [ "$1" == "cfs" ] || [ "$1" == "ps" ];then
         cat <<EOF > "$DIL_ROOT"/sh/print_fdmt_csv_fields.awk
 BEGIN{
@@ -70,6 +66,12 @@ EOF
     fi
 }
 
+
+rm -rf "$DIL_ROOT"/"$subfolder"/fields
+rm -rf "$DIL_ROOT"/"$subfolder"/schemas
+mkdir "$DIL_ROOT"/"$subfolder"/fields
+mkdir "$DIL_ROOT"/"$subfolder"/schemas
+
 extract_fields "$1"
 
 cd "$DIL_ROOT"/"$subfolder"
@@ -78,7 +80,7 @@ f0=$(find ./fields -maxdepth 1 -type f -name "*" | sort | head -n 1)
 while [ ! "$f0" == "" ];do
     schema=${f0##*/}
     cp "$f0" schemas/"$schema"
-    schema_folder="fields/schema$schema"
+    schema_folder=schemas/"$schema"_lst
     mkdir $schema_folder
 
 # ======= replaced by xargs parallel mode to speed up processing ======
@@ -95,5 +97,9 @@ while [ ! "$f0" == "" ];do
 # ======= replaced by xargs parallel mode to speed up processing ======
 
     find ./fields -maxdepth 1 -type f -name "*" | xargs -P 4 -I 'code' diff -q -s schemas/"$schema" 'code' | grep "identical" | cut -d " " -f 4 | xargs -I '{}' mv '{}' "$schema_folder"
+    ls "$schema_folder" > schemas/"$schema".lst
+    rm -rf "$schema_folder"
     f0=$(find ./fields -maxdepth 1 -type f -name "*" | sort | head -n 1)
 done
+
+rm -rf "$DIL_ROOT"/"$subfolder"/fields

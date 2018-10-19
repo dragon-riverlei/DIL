@@ -43,19 +43,19 @@ esac
 case "$2" in
     bank)
         schema_file="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/000001
-        schema_dir="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/fields/schema000001
+        schema_lst="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/000001.lst
         ;;
     general)
         schema_file="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/000002
-        schema_dir="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/fields/schema000002
+        schema_lst="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/000002.lst
         ;;
     securities)
         schema_file="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/000686
-        schema_dir="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/fields/schema000686
+        schema_lst="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/000686.lst
         ;;
     insurance)
         schema_file="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/601318
-        schema_dir="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/fields/schema601318
+        schema_lst="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/601318.lst
         ;;
     *)
         usage
@@ -69,12 +69,7 @@ fi
 jqf="$DIL_ROOT"/tmp/check_regular_report_delta_values_"$report_type"_"$2".jq
 "$DIL_ROOT"/sh/print_regular_report_delta_jq_fields.sh -c $1 $2 > "$jqf"
 
-cd "$schema_dir"
-for f in "$schema_dir"/*
-do
-    code=${f##*/}
-    echo "$code"
-done | sort | uniq > "$DIL_ROOT"/"$subfolder"/code_list
+cat "$schema_lst" | sort | uniq > "$DIL_ROOT"/"$subfolder"/code_list
 
 "$DIL_ROOT"/sh/find_stock_list_china_with_absence_regular_report.sh > "$DIL_ROOT"/"$subfolder"/code_with_absent_regular_report
 

@@ -57,16 +57,16 @@ esac
 
 case "$3" in
     bank)
-        fields_folder="$DIL_ROOT/feeds/fdmt_"$report_type"_sheet_initial/fields/schema000001"
+        schema_lst="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/000001.lst
         ;;
     general)
-        fields_folder="$DIL_ROOT/feeds/fdmt_"$report_type"_sheet_initial/fields/schema000002"
+        schema_lst="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/000002.lst
         ;;
     securities)
-        fields_folder="$DIL_ROOT/feeds/fdmt_"$report_type"_sheet_initial/fields/schema000686"
+        schema_lst="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/000686.lst
         ;;
     insurance)
-        fields_folder="$DIL_ROOT/feeds/fdmt_"$report_type"_sheet_initial/fields/schema601318"
+        schema_lst="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/601318.lst
         ;;
     *)
         if [ "$suffix" == "delta" ];then
@@ -87,10 +87,8 @@ function do_initial(){
 }
 
 function do_delta(){
-    cd "$fields_folder"
-    ls > "$DIL_ROOT"/tmp/check_regular_report_delta_fields_possible_codes
     "$DIL_ROOT"/sh/find_stock_list_china_with_absence_regular_report.sh > "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes_to_exclude
-    cat "$DIL_ROOT"/tmp/check_regular_report_delta_fields_possible_codes \
+    cat "$schema_lst" \
         "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes_to_exclude \
         "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes_to_exclude \
         | sort | uniq -u > "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes

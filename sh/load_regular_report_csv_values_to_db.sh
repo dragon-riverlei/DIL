@@ -58,19 +58,19 @@ subfolder=feeds/fdmt_"$report_type"_sheet_"$suffix"
 
 case "$3" in
     bank)
-        schema_dir=feeds/fdmt_"$report_type"_sheet_initial/fields/schema000001
+        schema_lst="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/000001.lst
         table=securities_"$report_type"_sheet_bank
         ;;
     general)
-        schema_dir=feeds/fdmt_"$report_type"_sheet_initial/fields/schema000002
+        schema_lst="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/000002.lst
         table=securities_"$report_type"_sheet_general
         ;;
     securities)
-        schema_dir=feeds/fdmt_"$report_type"_sheet_initial/fields/schema000686
+        schema_lst="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/000686.lst
         table=securities_"$report_type"_sheet_securities
         ;;
     insurance)
-        schema_dir=feeds/fdmt_"$report_type"_sheet_initial/fields/schema601318
+        schema_lst="$DIL_ROOT"/feeds/fdmt_"$report_type"_sheet_initial/schemas/601318.lst
         table=securities_"$report_type"_sheet_insurance
         ;;
     *)
@@ -78,8 +78,7 @@ case "$3" in
         ;;
 esac
 
-cd "$DIL_ROOT"/"$schema_dir"
-for f in $(ls)
+for f in $(cat "$schema_lst")
 do
     psql "$db" <<EOF
 \x
