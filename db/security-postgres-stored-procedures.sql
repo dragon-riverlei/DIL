@@ -502,7 +502,7 @@ create or replace function insert_securities_kpi (in start_time date) returns vo
       pi.五、净利润/ss.总股本/10000 as 每股收益
     from securities_balance_sheet_insurance bi
     join securities_profit_sheet_insurance pi on bi.time = pi.time and bi.code = pi.code
-    join securities_stock_structure ss on bs.time = ss.time and bi.code = ss.code
+    join securities_stock_structure ss on bi.time = ss.time and bi.code = ss.code
     where
       pi.一、营业收入 <> 0
       and pi.四、利润总额 <> 0
@@ -555,7 +555,7 @@ $$ LANGUAGE plpgsql;
 -- 从给定“分红起始年份”（含）起有不少于给定“分红年数“的证券
 -- 市盈率在给定区间的证券（在securities_day_quote的最新日期上）
 -- 市净率在给定区间的证券（在securities_day_quote的最新日期上）
--- 净资产收益率在给定区间的证券（在securities_major_financial_kpi的最新日期上）
+-- 净资产收益率在给定区间的证券（在securities_kpi的最新日期上）
 -- 根据上年度分红对股价的率比（在securities_day_quote的最新日期上）降序排列取给定row_limit条记录
 drop function if exists short_list;
 create or replace function short_list (
@@ -571,13 +571,13 @@ create or replace function short_list (
 ) returns table (
   sl_代码 varchar(6),
   sl_名称 varchar(10),
-  sl_分红比价格 numeric(10,2),
+  "sl_分红比价格 %" numeric(10,2),
   sl_市盈率 numeric(10,2),
-  sl_净资产收益率 numeric(10,2),
+  "sl_净资产收益率 %" numeric(10,2),
   sl_市净率 numeric(10,2),
-  sl_分红比盈利 numeric(10,2),
-  sl_每股盈利 numeric(10,2),
-  sl_每股分红 numeric(10,2)) as $$
+  "sl_分红比盈利 %" numeric(10,2),
+  sl_每股盈利（元） numeric(10,2),
+  sl_每股分红（元） numeric(10,2)) as $$
 
   declare quote_date date;
   declare kpi_date date;
@@ -589,13 +589,13 @@ create or replace function short_list (
     select
       d.code 代码,
       c.name 名称,
-      d.现金分红/q.price/10.0 分红比价格,
-      q.per 市盈率,
-      k.净利润_股东权益合计 净资产收益率,
-      q.pbr 市净率,
-      d.现金分红/10.0/d.eps 分红比盈利,
-      d.eps 每股盈利,
-      d.现金分红/10.0 每股分红
+      trunc(d.现金分红/q.price/10.0*100,2) 分红比价格,
+      trunc(q.per, 2) 市盈率,
+      trunc(k.净利润_股东权益合计*100, 2) 净资产收益率,
+      trunc(q.pbr, 2) 市净率,
+      trunc(d.现金分红/10.0/k.每股收益*100, 2) 分红比盈利,
+      trunc(k.每股收益, 2) 每股盈利,
+      trunc(d.现金分红/10.0, 2) 每股分红
     from securities_dividend d
     join securities_day_quote q on q.code = d.code
     join securities_kpi k on k.code = d.code
@@ -603,21 +603,217 @@ create or replace function short_list (
     where
       q.time = quote_date and k.time = kpi_date
       and q.price <> 0
-      and d.eps <> 0
+      and k.每股收益 <> 0
       and q.per >= per_l and q.per <= per_u
       and q.pbr >= pbr_l and q.pbr <= pbr_u
       and k.净利润_股东权益合计 >= roe_l and k.净利润_股东权益合计 <= roe_u
-      and d.year = (div_inception_year + div_years - 1)
+      and extract(year from d.time) = (div_inception_year + div_years - 1)
       and d.code in (
         select code from (
           select
             code,
-            count(year)
+            count(time)
           from securities_dividend
-          where year >= div_inception_year
+          where extract(year from time) >= div_inception_year
           group by code
-          having count(year) >= div_years) div_code)
+          having count(time) >= div_years) div_code)
     order by 分红比价格 desc, 市盈率, 净资产收益率 desc,  市净率, 分红比盈利
     limit row_limit;
+  end;
+$$ LANGUAGE plpgsql;
+
+-- short_list_code
+-- 条件选股，仅返回代码和名称
+-- 从给定“分红起始年份”（含）起有不少于给定“分红年数“的证券
+-- 市盈率在给定区间的证券（在securities_day_quote的最新日期上）
+-- 市净率在给定区间的证券（在securities_day_quote的最新日期上）
+-- 净资产收益率在给定区间的证券（在securities_kpi的最新日期上）
+-- 根据上年度分红对股价的率比（在securities_day_quote的最新日期上）降序排列取给定row_limit条记录
+drop function if exists short_list_code;
+create or replace function short_list_code (
+  in div_inception_year int, -- 分红起始年份
+  in div_years int, -- 分红年数
+  in per_l numeric(10,2), -- 市盈率下限，基于securities_day_quote中最新日期
+  in per_u numeric(10,2), -- 市盈率上限，基于securities_day_quote中最新日期
+  in pbr_l numeric(10,2), -- 市净率下限，基于securities_day_quote中最新日期
+  in pbr_u numeric(10,2), -- 市净率上限，基于securities_day_quote中最新日期
+  in roe_l numeric(10,2), -- 净资产收益率下限，基于securities_kpi中最新日期
+  in roe_u numeric(10,2), -- 净资产收益率上限，基于securities_kpi中最新日期
+  in row_limit int -- 返回满足条件的证券数量上限
+) returns table (
+  slc_代码 varchar(6),
+  slc_名称 varchar(10)) as $$
+  begin
+    return query
+    select sl_代码, sl_名称 from short_list(div_inception_year, div_years, per_l, per_u, pbr_l, pbr_u, roe_l, roe_u, row_limit);
+  end;
+$$ LANGUAGE plpgsql;
+
+-- short_list_code_default
+-- 条件选股，仅返回代码和名称
+-- 市盈率下限缺省设为0.01
+-- 市净率下限缺省设为0.01
+-- 净资产收益率下限缺省设为0.1
+-- 从给定“分红起始年份”（含）起有不少于给定“分红年数“的证券
+-- 市盈率在给定区间的证券（在securities_day_quote的最新日期上）
+-- 市净率在给定区间的证券（在securities_day_quote的最新日期上）
+-- 净资产收益率在给定区间的证券（在securities_kpi的最新日期上）
+-- 根据上年度分红对股价的率比（在securities_day_quote的最新日期上）降序排列取给定row_limit条记录
+drop function if exists short_list_code_default;
+create or replace function short_list_code_default (
+  in div_inception_year int, -- 分红起始年份
+  in div_years int, -- 分红年数
+  in per_u numeric(10,2), -- 市盈率上限，基于securities_day_quote中最新日期
+  in pbr_u numeric(10,2), -- 市净率上限，基于securities_day_quote中最新日期
+  in roe_u numeric(10,2), -- 净资产收益率上限，基于securities_kpi中最新日期
+  in row_limit int -- 返回满足条件的证券数量上限
+) returns table (
+  slcd_代码 varchar(6),
+  slcd_名称 varchar(10)) as $$
+
+  declare per_l numeric(10,2);
+  declare pbr_l numeric(10,2);
+  declare roe_l numeric(10,2);
+
+  begin
+    per_l := 0.01;
+    pbr_l := 0.01;
+    roe_l := 0.1;
+
+    return query
+    select slc_代码, slc_名称 from short_list_code(div_inception_year, div_years, per_l, per_u, pbr_l, pbr_u, roe_l, roe_u, row_limit);
+  end;
+$$ LANGUAGE plpgsql;
+
+-- short_list__default
+-- 条件选股
+-- 市盈率下限缺省设为0.01
+-- 市净率下限缺省设为0.01
+-- 净资产收益率下限缺省设为0.1
+-- 从给定“分红起始年份”（含）起有不少于给定“分红年数“的证券
+-- 市盈率在给定区间的证券（在securities_day_quote的最新日期上）
+-- 市净率在给定区间的证券（在securities_day_quote的最新日期上）
+-- 净资产收益率在给定区间的证券（在securities_kpi的最新日期上）
+-- 根据上年度分红对股价的率比（在securities_day_quote的最新日期上）降序排列取给定row_limit条记录
+drop function if exists short_list_default;
+create or replace function short_list_default (
+  in div_inception_year int, -- 分红起始年份
+  in div_years int, -- 分红年数
+  in per_u numeric(10,2), -- 市盈率上限，基于securities_day_quote中最新日期
+  in pbr_u numeric(10,2), -- 市净率上限，基于securities_day_quote中最新日期
+  in roe_u numeric(10,2), -- 净资产收益率上限，基于securities_kpi中最新日期
+  in row_limit int -- 返回满足条件的证券数量上限
+) returns table (
+  sld_代码 varchar(6),
+  sld_名称 varchar(10),
+  "sld_分红比价格 %" numeric(10,2),
+  sld_市盈率 numeric(10,2),
+  "sld_净资产收益率 %" numeric(10,2),
+  sld_市净率 numeric(10,2),
+  "sld_分红比盈利 %" numeric(10,2),
+  sld_每股盈利（元） numeric(10,2),
+  sld_每股分红（元） numeric(10,2)) as $$
+
+  declare per_l numeric(10,2);
+  declare pbr_l numeric(10,2);
+  declare roe_l numeric(10,2);
+
+  begin
+    per_l := 0.01;
+    pbr_l := 0.01;
+    roe_l := 0.1;
+    return query
+    select * from short_list(div_inception_year, div_years, per_l, per_u, pbr_l, pbr_u, roe_l, roe_u, row_limit);
+  end;
+$$ LANGUAGE plpgsql;
+
+-- data_status
+-- 汇总目前数据库中所收集数据的状态
+-- 主要包括数据的时间
+drop function if exists data_status;
+create or replace function data_status ()
+returns table (
+  ds_证券数量 int,
+  ds_行情日期 date,
+  ds_分红年度 date,
+  ds_证券持有日期 date,
+  ds_现金持有日期 date,
+  ds_交易日期 date,
+  ds_资产负债_银行 date,
+  ds_资产负债_一般 date,
+  ds_资产负债_证券 date,
+  ds_资产负债_保险 date,
+  ds_现金流量_银行 date,
+  ds_现金流量_一般 date,
+  ds_现金流量_证券 date,
+  ds_现金流量_保险 date,
+  ds_利润_银行 date,
+  ds_利润_一般 date,
+  ds_利润_证券 date,
+  ds_利润_保险 date,
+  ds_股本结构 date) as $$
+
+  declare code_num int;
+  declare quote_date date;
+  declare div_year date;
+  declare sec_hold_date date;
+  declare cash_hold_date date;
+  declare trans_date date;
+  declare balance_bank_date date;
+  declare balance_general_date date;
+  declare balance_securities_date date;
+  declare balance_insurance_date date;
+  declare cash_flow_bank_date date;
+  declare cash_flow_general_date date;
+  declare cash_flow_securities_date date;
+  declare cash_flow_insurance_date date;
+  declare profit_bank_date date;
+  declare profit_general_date date;
+  declare profit_securities_date date;
+  declare profit_insurance_date date;
+  declare stock_structure_date date;
+
+  begin
+    select count(*) into code_num from securities_code;
+    select max(time) into quote_date from securities_day_quote;
+    select max(time) into div_year from securities_dividend;
+    select max(time) into sec_hold_date from securities_holding;
+    select max(time) into cash_hold_date from cash_holding;
+    select max(time) into trans_date from securities_transaction;
+    select max(time) into balance_bank_date from securities_balance_sheet_bank;
+    select max(time) into balance_general_date from securities_balance_sheet_general;
+    select max(time) into balance_securities_date from securities_balance_sheet_securities;
+    select max(time) into balance_insurance_date from securities_balance_sheet_insurance;
+    select max(time) into cash_flow_bank_date from securities_cash_flow_sheet_bank;
+    select max(time) into cash_flow_general_date from securities_cash_flow_sheet_general;
+    select max(time) into cash_flow_securities_date from securities_cash_flow_sheet_securities;
+    select max(time) into cash_flow_insurance_date from securities_cash_flow_sheet_insurance;
+    select max(time) into profit_bank_date from securities_profit_sheet_bank;
+    select max(time) into profit_general_date from securities_profit_sheet_general;
+    select max(time) into profit_securities_date from securities_profit_sheet_securities;
+    select max(time) into profit_insurance_date from securities_profit_sheet_insurance;
+    select max(time) into stock_structure_date from securities_stock_structure;
+
+    return query
+    select
+      code_num,
+      quote_date,
+      div_year,
+      sec_hold_date,
+      cash_hold_date,
+      trans_date,
+      balance_bank_date,
+      balance_general_date,
+      balance_securities_date,
+      balance_insurance_date,
+      cash_flow_bank_date,
+      cash_flow_general_date,
+      cash_flow_securities_date,
+      cash_flow_insurance_date,
+      profit_bank_date,
+      profit_general_date,
+      profit_securities_date,
+      profit_insurance_date,
+      stock_structure_date;
   end;
 $$ LANGUAGE plpgsql;
