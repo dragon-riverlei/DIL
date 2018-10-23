@@ -751,7 +751,8 @@ returns table (
   ds_利润_一般 date,
   ds_利润_证券 date,
   ds_利润_保险 date,
-  ds_股本结构 date) as $$
+  ds_股本结构 date,
+  ds_关键指标 date) as $$
 
   declare code_num int;
   declare quote_date date;
@@ -772,6 +773,7 @@ returns table (
   declare profit_securities_date date;
   declare profit_insurance_date date;
   declare stock_structure_date date;
+  declare securities_kpi_date date;
 
   begin
     select count(*) into code_num from securities_code;
@@ -793,6 +795,7 @@ returns table (
     select max(time) into profit_securities_date from securities_profit_sheet_securities;
     select max(time) into profit_insurance_date from securities_profit_sheet_insurance;
     select max(time) into stock_structure_date from securities_stock_structure;
+    select max(time) into securities_kpi_date from securities_kpi;
 
     return query
     select
@@ -814,6 +817,7 @@ returns table (
       profit_general_date,
       profit_securities_date,
       profit_insurance_date,
-      stock_structure_date;
+      stock_structure_date,
+      securities_kpi_date;
   end;
 $$ LANGUAGE plpgsql;
