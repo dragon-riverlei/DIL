@@ -617,7 +617,7 @@ create or replace function short_list (
           where extract(year from time) >= div_inception_year
           group by code
           having count(time) >= div_years) div_code)
-    order by 分红比价格 desc, 市盈率, 净资产收益率 desc,  市净率, 分红比盈利
+    order by 市盈率, 净资产收益率 desc, 分红比价格 desc, 市净率, 分红比盈利
     limit row_limit;
   end;
 $$ LANGUAGE plpgsql;
