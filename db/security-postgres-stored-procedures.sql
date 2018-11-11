@@ -2,27 +2,24 @@
 -- Stored procedure definitions
 -- ====================================
 
--- year_consecutiveness_with_consecutive_quarters:判断给定表中（必须包含code和time字段）某证券季度连续程度
--- year_consecutiveness_with_consecutive_quarters_balance_sheet:判断balance_sheet表在给季度上连续时年份的连续程度
--- year_consecutiveness_with_consecutive_quarters_cash_flow_sheet:判断cash_flow_sheet表在给季度上连续时年份的连续程度
--- year_consecutiveness_with_consecutive_quarters_profit_sheet:判断profit_sheet表在给季度上连续时年份的连续程度
--- year_consecutiveness:判断给定表中（必须包含code和time字段）某证券在给定月份和日期上的年份连续程度
--- year_consecutiveness_balance_sheet:判断balance_sheet表在给定月份和日期上的年份连续程度
--- year_consecutiveness_cash_flow_sheet:判断cash_flow_sheet表在给定月份和日期上的年份连续程度
--- year_consecutiveness_profit_sheet:判断profit_sheet表在给定月份和日期上的年份连续程度
--- transaction_soldout_subtotal:已结实盈(清仓个股)，曾经持有，目前清仓的证券
--- transaction_soldout_total:已结实盈(清仓汇总)，曾经持有，目前清仓的证券
--- transaction_dividend_subtotal:已结实盈(分红个股)，分红
--- transaction_dividend_total:已结实盈(分红汇总)，分红
--- transaction_holding_subtotal:浮盈（个股）
--- transaction_holding_total:浮盈（汇总）
--- insert_securities_kpi:新增给定日期之后的KPI记录
--- investment_earning:投资收益（给定时间区间）
--- short_list:条件选股，返回详细信息
--- short_list_default:条件选股（使用缺省条件），返回详细信息
--- short_list_code:条件选股，只返回代码和名称
--- short_list_code_default:条件选股（使用缺省条件），只返回代码和名称
--- data_status:汇总目前数据库中所收集数据的状态
+-- data_status: 汇总目前数据库中所收集数据的状态
+-- find_code_time: 在表中查找包含在start_year和end_year年份范围内的记录
+-- find_code_with_missing_months
+-- find_code_with_missing_years
+-- report_code_with_missing_months
+-- report_code_with_missing_years
+-- transaction_soldout_subtotal: 已结实盈(清仓个股)，曾经持有，目前清仓的证券
+-- transaction_soldout_total: 已结实盈(清仓汇总)，曾经持有，目前清仓的证券
+-- transaction_dividend_subtotal: 已结实盈(分红个股)，分红
+-- transaction_dividend_total: 已结实盈(分红汇总)，分红
+-- transaction_holding_subtotal: 浮盈（个股）
+-- transaction_holding_total: 浮盈（汇总）
+-- insert_securities_kpi: 新增给定日期之后的KPI记录
+-- investment_earning: 投资收益（给定时间区间）
+-- short_list: 条件选股，返回详细信息
+-- short_list_default: 条件选股（使用缺省条件），返回详细信息
+-- short_list_code: 条件选股，只返回代码和名称
+-- short_list_code_default: 条件选股（使用缺省条件），只返回代码和名称
 
 -- 计算指定时期投资账户的投资盈利P：
 --     期初持有证券的总市值 S0
@@ -41,231 +38,152 @@
 --             期间购入：每次购买数量和购买价格
 --             所得红股
 
--- year_consecutiveness_with_consecutive_quarters:
--- 判断给定表（必须包含code和time字段）中季度上连续时年份的连续程度。
---
--- count = 1 代表年份全部连续
--- count = 2 代表年份分为两部分，部分与部分之间不连续，部分内连续
--- ...
--- count = n 代表年份分为n部分，部分与部分之间不连续，部分内连续
-drop function if exists year_consecutiveness_with_consecutive_quarters;
-create or replace function year_consecutiveness_with_consecutive_quarters(tbl regclass)
-returns table (code varchar(6), count bigint) as $$
+
+-- 在表中查找包含在start_year和end_year年份范围内的记录，
+-- 并返回code和time字段
+drop function if exists find_code_time;
+create or replace function find_code_time(tbl regclass, start_year integer, end_year integer)
+returns table (code varchar(6), "time" date) as $$
   begin
-  return query execute format('
-    with
-      code_year as (
+    return query execute format(
+      '
+      select distinct code, time from (
+        select code, time from %s
+        where extract(year from time) >= %s and extract(year from time) <= %s
+      ) t1;
+      ', tbl, start_year, end_year);
+  end;
+$$ language plpgsql;
+
+-- 在表中查找满足以下条件的记录：
+--     在start_year和end_year年份范围内,
+--     最新年份等于end_year
+--     且年份在start_year和end_year内有中断的记录，
+-- 并返回以下字段:
+--     code,
+--     actual_years, 实际年份
+--     expected_years, 期望年份
+--     year_low_bound, 最旧年份
+--     year_upper_bound, 最新年份
+drop function if exists find_code_with_missing_years;
+create or replace function find_code_with_missing_years(tbl regclass, start_year integer, end_year integer)
+returns table (fcwmy_code varchar(6), fcwmy_actual_years integer[], fcwmy_expected_years integer[], fcwmy_year_low_bound integer, fcwmy_year_upper_bound integer) as $$
+  begin
+  return query
+      select code, actual_years, expected_years, year_low_bound, year_upper_bound from (
         select
           code,
-          year
+          array_agg(year) actual_years,
+          min(year) year_low_bound,
+          max(year) year_upper_bound
         from (
-          select
-            distinct code,
-            year,
-            count(year) quarter_count
-          from (
-            select
-              code,
-              to_char(time, ''yyyy'') as year
-            from
-              %s
-          ) t1
-          group by
-            code,
-            year
-          order by
-            code,
-            year
-        ) t2
-        where
-          quarter_count = 4
-      ),
-      year_row_delta_group_by_code as (
-        select
-          distinct code,
-          delta
-        from (
-          select
-            code,
-            cast(year as integer) - row_number() over (
-              partition by
-                code
-              order by
-                year
-            ) as delta
-          from
-            code_year
-        ) t3
-      )
+          select distinct code, extract(year from time)::integer "year" from find_code_time(tbl, start_year, end_year) order by "year"
+        ) o1
+        group by code
+        having max(year) = end_year
+        order by code, year_low_bound
+      ) o2
+      inner join lateral (
+        select year_arr expected_years from (
+          select array_agg(series) year_arr from generate_series(o2.year_low_bound, o2.year_upper_bound) as series
+        ) o3
+      ) o4
+      on true
+      where actual_years <> expected_years;
+  end;
+$$ language plpgsql;
 
-    select
+-- 在表中查找满足以下条件的记录：
+--     在start_year和end_year年份范围内,
+--     最新年份等于end_year
+--     且年份在start_year和end_year内有中断的记录，
+-- 并返回以下字段:
+--     code,
+--     missing_years, 缺失年份（实际年份相对于期望年份）
+--     year_low_bound, 最旧年份
+--     year_upper_bound, 最新年份
+drop function if exists report_code_with_missing_years;
+create or replace function report_code_with_missing_years(tbl regclass, start_year integer, end_year integer)
+returns table (rcwmy_code varchar(6), rcwmy_name varchar(10), rcwmy_missing_years integer[], rcwmy_year_low_bound integer, rcwmy_year_upper_bound integer) as $$
+  begin
+  return query
+    select t4.code, sc.name, missing_years, year_low_bound, year_upper_bound from (
+      select
+        t2.code,
+        array_agg(years) missing_years,
+        max(fcwmy_year_low_bound) year_low_bound,
+        max(fcwmy_year_upper_bound) year_upper_bound
+        from (
+          select code, years from (
+            select fcwmy_code code, unnest(fcwmy_expected_years) years from find_code_with_missing_years(tbl, start_year, end_year)
+            except
+            select fcwmy_code code, unnest(fcwmy_actual_years) years from find_code_with_missing_years(tbl, start_year, end_year)
+        ) t1 order by code, years
+      ) t2
+      join (
+        select distinct fcwmy_code code, fcwmy_year_low_bound, fcwmy_year_upper_bound from find_code_with_missing_years(tbl, start_year, end_year)
+      ) t3 on t3.code = t2.code
+      group by t2.code order by t2.code
+    ) t4
+    join securities_code sc on sc.code = t4.code;
+  end;
+$$ language plpgsql;
+
+-- 在表中查找满足以下条件的记录：
+--     在start_year和end_year年份范围内,
+--     最新年份等于end_year
+--     并且年份在start_year和end_year内“没有”中断，
+--     并且月份缺失expected_months中的任意一个或多个
+-- 并返回以下字段:
+--     code,
+--     year, 年份
+--     actual_months，实际有的月份
+drop function if exists find_code_with_missing_months;
+create or replace function find_code_with_missing_months(tbl regclass, start_year integer, end_year integer, expected_months integer[])
+returns table (fcwmm_code varchar(6), fcwmm_year integer, fcwmm_actual_months integer[]) as $$
+  begin
+  return query
+    select distinct
       code,
-      count(*)
-    from
-      year_row_delta_group_by_code
-    group by
-      code;
-  ', tbl);
+      extract(year from time)::integer "year",
+      array_agg(extract(month from time)::integer) "month"
+    from find_code_time(tbl, start_year, end_year)
+    where code not in (
+      select fcwmy_code from find_code_with_missing_years(tbl, start_year, end_year)
+    )
+    group by code, "year"
+    having array_agg(extract(month from time)::integer) <> expected_months
+    order by code, "year";
   end;
-$$ LANGUAGE plpgsql;
+$$ language plpgsql;
 
--- year_consecutiveness_with_consecutive_quarters_balance_sheet:
--- 判断balance_sheet表在给季度上连续时年份的连续程度
-drop function if exists year_consecutiveness_with_consecutive_quarters_balance_sheet;
-create or replace function year_consecutiveness_with_consecutive_quarters_balance_sheet()
-returns table (code varchar(6), count bigint) as $$
+-- 在表中查找满足以下条件的记录：
+--     在start_year和end_year年份范围内,
+--     最新年份等于end_year
+--     并且年份在start_year和end_year内“没有”中断，
+--     并且月份缺失expected_months中的任意一个或多个
+-- 并返回以下字段:
+--     code,
+--     name,
+--     year, 年份
+--     missing_months，缺失的月份
+drop function if exists report_code_with_missing_months;
+create or replace function report_code_with_missing_months(tbl regclass, start_year integer, end_year integer, expected_months integer[])
+returns table (rcwmm_code varchar(6), rcwmm_name varchar(10), rcwmm_year integer, rcwmm_missing_months integer[]) as $$
   begin
-    return query
-    select * from year_consecutiveness_with_consecutive_quarters('securities_balance_sheet_bank')
-    union
-    select * from year_consecutiveness_with_consecutive_quarters('securities_balance_sheet_general')
-    union
-    select * from year_consecutiveness_with_consecutive_quarters('securities_balance_sheet_securities')
-    union
-    select * from year_consecutiveness_with_consecutive_quarters('securities_balance_sheet_insurance');
+  return query
+    select t3.code, sc.name, t3.year, t3.missing_months from (
+      select code, "year", array_agg("month") missing_months from (
+        select code, "year", "month" from (
+          select fcwmm_code code, fcwmm_year "year", unnest(expected_months) "month" from find_code_with_missing_months(tbl, start_year, end_year, expected_months)
+          except
+          select fcwmm_code code, fcwmm_year "year", unnest(fcwmm_actual_months) "month" from find_code_with_missing_months(tbl, start_year, end_year, expected_months)
+        ) t1 order by code, "year", "month"
+      ) t2 group by t2.code, "year"
+    ) t3
+    join securities_code sc on sc.code = t3.code;
   end;
-$$ LANGUAGE plpgsql;
-
--- year_consecutiveness_with_consecutive_quarters_cash_flow_sheet:
--- 判断cash_flow_sheet表在给季度上连续时年份的连续程度
-drop function if exists year_consecutiveness_with_consecutive_quarters_cash_flow_sheet;
-create or replace function year_consecutiveness_with_consecutive_quarters_cash_flow_sheet()
-returns table (code varchar(6), count bigint) as $$
-  begin
-    return query
-    select * from year_consecutiveness_with_consecutive_quarters('securities_cash_flow_sheet_bank')
-    union
-    select * from year_consecutiveness_with_consecutive_quarters('securities_cash_flow_sheet_general')
-    union
-    select * from year_consecutiveness_with_consecutive_quarters('securities_cash_flow_sheet_securities')
-    union
-    select * from year_consecutiveness_with_consecutive_quarters('securities_cash_flow_sheet_insurance');
-  end;
-$$ LANGUAGE plpgsql;
-
--- year_consecutiveness_with_consecutive_quarters_profit_sheet:
--- 判断profit_sheet表在给季度上连续时年份的连续程度
-drop function if exists year_consecutiveness_with_consecutive_quarters_profit_sheet;
-create or replace function year_consecutiveness_with_consecutive_quarters_profit_sheet()
-returns table (code varchar(6), count bigint) as $$
-  begin
-    return query
-    select * from year_consecutiveness_with_consecutive_quarters('securities_profit_sheet_bank')
-    union
-    select * from year_consecutiveness_with_consecutive_quarters('securities_profit_sheet_general')
-    union
-    select * from year_consecutiveness_with_consecutive_quarters('securities_profit_sheet_securities')
-    union
-    select * from year_consecutiveness_with_consecutive_quarters('securities_profit_sheet_insurance');
-  end;
-$$ LANGUAGE plpgsql;
-
--- year_consecutiveness:
--- 返回给定表中（必须包含code和time字段）某证券在给定月份和日期上的年份连续程度。
--- count = 1 代表年份在该月份和日期上全部连续
--- count = 2 代表年份分为两部分，部分内连续，但部分与部分之间不连续
--- ...
--- count = n 代表年份分为n部分，部分内连续，但部分与部分之间不连续
-drop function if exists year_consecutiveness;
-create or replace function year_consecutiveness(tbl regclass, month integer, day integer)
-returns table (code varchar(6), count bigint) as $$
-  begin
-  return query execute format('
-    with
-      code_year as (
-        select
-          distinct code,
-          year
-        from (
-          select
-            code,
-            to_char(time, ''yyyy'') as year
-          from
-            %s
-          where
-            extract(''month'' from time) = %s
-            and extract(''day'' from time) = %s
-        ) t1
-      ),
-      year_row_delta_group_by_code as (
-        select
-          distinct code,
-          delta
-        from (
-          select
-            code,
-            cast(year as integer) - row_number() over (
-              partition by
-                code
-              order by
-                year
-            ) as delta
-          from
-            code_year
-        ) t2
-      )
-
-    select
-      code,
-      count(*)
-    from
-      year_row_delta_group_by_code
-    group by
-      code;
-  ', tbl, month, day);
-  end;
-$$ LANGUAGE plpgsql;
-
--- year_consecutiveness_balance_sheet:
--- 判断balance_sheet表在给定月份和日期上的年份连续程度。
-drop function if exists year_consecutiveness_balance_sheet;
-create or replace function year_consecutiveness_balance_sheet(month integer, day integer)
-returns table (code varchar(6), count bigint) as $$
-  begin
-    return query
-    select * from year_consecutiveness('securities_balance_sheet_bank', month, day)
-    union
-    select * from year_consecutiveness('securities_balance_sheet_general', month, day)
-    union
-    select * from year_consecutiveness('securities_balance_sheet_securities', month, day)
-    union
-    select * from year_consecutiveness('securities_balance_sheet_insurance', month, day);
-  end;
-$$ LANGUAGE plpgsql;
-
--- year_consecutiveness_cash_flow_sheet:
--- 判断cash_flow_sheet表在给定月份和日期上的年份连续程度。
-drop function if exists year_consecutiveness_cash_flow_sheet;
-create or replace function year_consecutiveness_cash_flow_sheet(month integer, day integer)
-returns table (code varchar(6), count bigint) as $$
-  begin
-    return query
-    select * from year_consecutiveness('securities_cash_flow_sheet_bank', month, day)
-    union
-    select * from year_consecutiveness('securities_cash_flow_sheet_general', month, day)
-    union
-    select * from year_consecutiveness('securities_cash_flow_sheet_securities', month, day)
-    union
-    select * from year_consecutiveness('securities_cash_flow_sheet_insurance', month, day);
-  end;
-$$ LANGUAGE plpgsql;
-
--- year_consecutiveness_profit_sheet:
--- 判断profit_sheet表在给定月份和日期上的年份连续程度。
-drop function if exists year_consecutiveness_profit_sheet;
-create or replace function year_consecutiveness_profit_sheet(month integer, day integer)
-returns table (code varchar(6), count bigint) as $$
-  begin
-    return query
-    select * from year_consecutiveness('securities_profit_sheet_bank', month, day)
-    union
-    select * from year_consecutiveness('securities_profit_sheet_general', month, day)
-    union
-    select * from year_consecutiveness('securities_profit_sheet_securities', month, day)
-    union
-    select * from year_consecutiveness('securities_profit_sheet_insurance', month, day);
-  end;
-$$ LANGUAGE plpgsql;
+$$ language plpgsql;
 
 -- transaction_soldout_subtotal:
 -- 已结实盈(清仓个股)，曾经持有，目前清仓的证券
@@ -589,13 +507,13 @@ create or replace function short_list (
     select
       d.code 代码,
       c.name 名称,
-      trunc(d.现金分红/q.price/10.0*100,2) 分红比价格,
-      trunc(q.per, 2) 市盈率,
-      trunc(k.净利润_股东权益合计*100, 2) 净资产收益率,
-      trunc(q.pbr, 2) 市净率,
-      trunc(d.现金分红/10.0/k.每股收益*100, 2) 分红比盈利,
-      trunc(k.每股收益, 2) 每股盈利,
-      trunc(d.现金分红/10.0, 2) 每股分红
+      round(d.现金分红/q.price/10.0*100,2) 分红比价格,
+      round(q.per, 2) 市盈率,
+      round(k.净利润_股东权益合计*100, 2) 净资产收益率,
+      round(q.pbr, 2) 市净率,
+      round(d.现金分红/10.0/k.每股收益*100, 2) 分红比盈利,
+      round(k.每股收益, 2) 每股盈利,
+      round(d.现金分红/10.0, 2) 每股分红
     from securities_dividend d
     join securities_day_quote q on q.code = d.code
     join securities_kpi k on k.code = d.code
