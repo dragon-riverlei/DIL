@@ -30,3 +30,5 @@ codes_to_report=$(cat "$subfolder"/code_missed "$subfolder"/code_with_absent_reg
 if [ ! $codes_to_report == "" ];then
     cat feeds/stock_list_china.jl | ag $codes_to_report | jq -r 'if .market=="Shanghai" then "sh" else "sz" end + .code'
 fi
+rm "$subfolder"/code_missed
+rm "$subfolder"/code_with_absent_regular_report
