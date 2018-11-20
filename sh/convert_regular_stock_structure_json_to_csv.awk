@@ -1,95 +1,157 @@
 #!/usr/bin/env awk
 
-function extract_date(key){
-    data[$1][$3][key] = $3
+BEGIN{
+    last_field = ""
+    i = 0
 }
 
-function extract_value(key){
-    for (date in data[$1]){
-        data[$1][date][key] = $3
-    }
+
+function extract_date(count, key){
+    data[$1][count][key] = $3
+}
+
+function extract_value(count, key){
+        data[$1][count][key] = $3
+}
+
+last_field != $2{
+    i = 0
 }
 
 $2=="单位:万股"{
-    extract_date(1)
+    last_field = $2
+    i = i + 1
+    extract_date(i, 1)
 }
 $2=="已上市流通A股"{
-    extract_value(2)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 2)
 }
 $2=="已流通股份"{
-    extract_value(3)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 3)
 }
 $2=="变动原因"{
-    extract_value(4)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 4)
 }
 $2=="总股本"{
-    extract_value(5)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 5)
 }
 $2=="流通受限股份"{
-    extract_value(6)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 6)
 }
 $2=="其他内资持股(受限)"{
-    extract_value(7)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 7)
 }
 $2=="国有法人持股(受限)"{
-    extract_value(8)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 8)
 }
 $2=="境内自然人持股(受限)"{
-    extract_value(9)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 9)
 }
 $2=="国家持股(受限)"{
-    extract_value(10)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 10)
 }
 $2=="国家持股"{
-    extract_value(11)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 11)
 }
 $2=="境外法人持股(受限)"{
-    extract_value(12)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 12)
 }
 $2=="境内法人持股(受限)"{
-    extract_value(13)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 13)
 }
 $2=="外资持股(受限)"{
-    extract_value(14)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 14)
 }
 $2=="境外上市流通股"{
-    extract_value(15)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 15)
 }
 $2=="已上市流通B股"{
-    extract_value(16)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 16)
 }
 $2=="未流通股份"{
-    extract_value(17)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 17)
 }
 $2=="发起人股份"{
-    extract_value(18)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 18)
 }
 $2=="境外自然人持股（受限）"{
-    extract_value(19)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 19)
 }
 $2=="自然人持股"{
-    extract_value(20)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 20)
 }
 $2=="境内法人持股"{
-    extract_value(21)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 21)
 }
 $2=="募集法人股"{
-    extract_value(22)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 22)
 }
 $2=="国有法人持股"{
-    extract_value(23)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 23)
 }
 $2=="其他未流通股"{
-    extract_value(24)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 24)
 }
 $2=="内部职工股"{
-    extract_value(25)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 25)
 }
 $2=="其他流通股"{
-    extract_value(26)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 26)
 }
 $2=="优先股"{
-    extract_value(27)
+    last_field = $2
+    i = i + 1
+    extract_value(i, 27)
 }
 END{
     for (code in data){
