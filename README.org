@@ -123,9 +123,11 @@
 
        - [[file:crawl/crawl/spiders/securities/china/StockStructureChinaSpider.py][StockStructureChinaSpider]] for stock structure
        - [[file:crawl/crawl/spiders/securities/china/StockDividendChinaSpider.py][StockDividendChinaSpider]] for dividend
+       - [[file:crawl/crawl/spiders/securities/china/StockIpoInfoChinaSpider.py][StockIpoInfoChinaSpider]] for IPO related info
 
         [[file:sh/check_regular_stock_structure_values.sh][check_regular_stock_structure_values.sh]] for sanity check of values of stock structure.
         [[file:sh/check_regular_dividend_values.sh][check_regular_dividend_values.sh]] for sanity check of values of dividend.
+        [[file:sh/check_stock_ipo_info_values.sh][check_stock_ipo_info_values.sh]] for sanity check of values of IPO info.
 
 ***** Stage 2: write to DB
 ****** 1st: table definition for the regular reports
@@ -133,6 +135,7 @@
           - securities_code
           - securities_dividend
           - securities_day_quote
+          - securities_ipo
           - securities_kpi
           - securities_transaction
           - securities_holding

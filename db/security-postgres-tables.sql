@@ -7,6 +7,15 @@ create table if not exists securities_code (
   market varchar(10) not null, -- 证券市场名称
   country varchar(5) not null  -- 证券市场所在国家
 );
+create table if not exists securities_ipo (
+  code varchar(6) primary key, -- 证券代码
+  found_time date not null, -- 成立日期
+  ipo_time date not null, -- 上市日期
+  ipo_price numeric(10,4) not null, -- 发行价
+  ipo_volume numeric(20,4) not null, -- 发行量
+  ipo_cap numeric(20,4) not null, -- 发行市值
+  ipo_per numeric(10,4) -- 发行市盈率
+);
 create table if not exists securities_dividend (
   code varchar(6) not null, -- 证券代码
   time date not null,   -- 财务年度

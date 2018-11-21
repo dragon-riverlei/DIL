@@ -9,7 +9,14 @@ from scrapy.exporters import JsonLinesItemExporter
 
 from xlrd import open_workbook
 
-from crawl.mysettings import ITEM_EXPORTER_PATH, FILE_STOCK_CODE_LIST_CHINA, FILE_STOCK_LIST_CHINA, FILE_STOCK_DAY_QUOTE_CHINA, FILE_STOCK_DIVIDEND_CHINA
+from crawl.mysettings import (
+    ITEM_EXPORTER_PATH,
+    FILE_STOCK_CODE_LIST_CHINA,
+    FILE_STOCK_IPO_INFO_CHINA,
+    FILE_STOCK_LIST_CHINA,
+    FILE_STOCK_DAY_QUOTE_CHINA,
+    FILE_STOCK_DIVIDEND_CHINA,
+)
 
 
 class CrawlPipeline(object):
@@ -162,3 +169,10 @@ class StockStructureChinaPipeline(CrawlPipeline):
         stock_structure_file.write(item['result'])
         stock_structure_file.close()
         return item
+
+
+class StockIpoInfoChinaPipeline(CrawlPipeline):
+    def process_item(self, item, spider):
+        exporter = self.get_exporter(self.__class__.__name__[:-8],
+                                     FILE_STOCK_IPO_INFO_CHINA)
+        exporter.export_item(item)

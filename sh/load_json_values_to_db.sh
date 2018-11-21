@@ -4,11 +4,12 @@
 
 usage(){
     echo "usage:"
-    echo "load_json_values_to_db.sh <slc|dq|dvdd|stock_struct>"
+    echo "load_json_values_to_db.sh <slc|dq|dvdd|ipo|stock_struct>"
     echo ""
     echo "  slc: stock list china"
     echo "  dq: day quote"
     echo "  dvdd: dividend"
+    echo "  ipo: IPO info"
     echo "  stock_struct: stock structure"
     exit 1
 }
@@ -56,6 +57,19 @@ EOF
     rm "$csv_file"
 }
 
+load_stock_ipo_info_china(){
+    local csv_file="stock_ipo_info_china.csv"
+    local table="securities_ipo"
+    cat "$1" | jq -r -f "$DIL_ROOT/sh/convert_stock_ipo_info_json_to_csv.jq" | sed 's/"//g' > "$DIL_ROOT"/feeds/"$csv_file"
+    psql "$db" <<EOF
+\x
+create temp table tmp_table as select * from "$table" with no data;
+copy tmp_table from '$DIL_ROOT/feeds/$csv_file' with delimiter as ',' NULL as 'NULL' csv;
+insert into "$table" select * from tmp_table on conflict do nothing;
+EOF
+    rm "$DIL_ROOT"/feeds/"$csv_file"
+}
+
 load_all_stock_dividend_china(){
     local subfolder="feeds/fdmt_dividend/data"
     for f in `ls $DIL_ROOT/$subfolder/*`
@@ -92,6 +106,9 @@ case "$1" in
         ;;
     dvdd)
         load_all_stock_dividend_china
+        ;;
+    ipo)
+        load_stock_ipo_info_china "$DIL_ROOT"/feeds/stock_ipo_info_china.jl
         ;;
     stock_struct)
         "$DIL_ROOT"/sh/convert_regular_stock_structure_json_to_csv.sh
