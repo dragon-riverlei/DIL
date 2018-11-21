@@ -125,6 +125,7 @@
        - [[file:crawl/crawl/spiders/securities/china/StockDividendChinaSpider.py][StockDividendChinaSpider]] for dividend
 
         [[file:sh/check_regular_stock_structure_values.sh][check_regular_stock_structure_values.sh]] for sanity check of values of stock structure.
+        [[file:sh/check_regular_dividend_values.sh][check_regular_dividend_values.sh]] for sanity check of values of dividend.
 
 ***** Stage 2: write to DB
 ****** 1st: table definition for the regular reports
