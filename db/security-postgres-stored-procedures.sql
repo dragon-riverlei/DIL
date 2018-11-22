@@ -83,7 +83,7 @@ returns table (fcwmy_code varchar(6), fcwmy_actual_years integer[], fcwmy_expect
         having max(year) = end_year
         order by code, year_low_bound
       ) o2
-      inner join lateral (
+      join lateral (
         select year_arr expected_years from (
           select array_agg(series) year_arr from generate_series(o2.year_low_bound, o2.year_upper_bound) as series
         ) o3
@@ -146,13 +146,13 @@ returns table (fcwmm_code varchar(6), fcwmm_year integer, fcwmm_actual_months in
     select distinct
       code,
       extract(year from time)::integer "year",
-      array_agg(extract(month from time)::integer) "month"
+      array_agg(extract(month from time)::integer) months
     from find_code_time(tbl, start_year, end_year)
     where code not in (
       select fcwmy_code from find_code_with_missing_years(tbl, start_year, end_year)
     )
     group by code, "year"
-    having array_agg(extract(month from time)::integer) <> expected_months
+    having not array_agg(extract(month from time)::integer) @> expected_months
     order by code, "year";
   end;
 $$ language plpgsql;
