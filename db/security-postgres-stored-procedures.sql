@@ -185,6 +185,154 @@ returns table (rcwmm_code varchar(6), rcwmm_name varchar(10), rcwmm_year integer
   end;
 $$ language plpgsql;
 
+drop function if exists find_code_with_data_completeness_level_1;
+create or replace function find_code_with_data_completeness_level_1(start_year integer, end_year integer)
+returns table (fcwdcl1_code varchar(6), fcwdcl1_name varchar(10)) as $$
+  begin
+  return query
+    select sc.code, sc.name from securities_code sc where sc.code not in (
+      select fcwmy_code from find_code_with_missing_years('securities_balance_sheet_bank', start_year, end_year)
+      union
+      select fcwmy_code from find_code_with_missing_years('securities_balance_sheet_general', start_year, end_year)
+      union
+      select fcwmy_code from find_code_with_missing_years('securities_balance_sheet_insurance', start_year, end_year)
+      union
+      select fcwmy_code from find_code_with_missing_years('securities_balance_sheet_securities', start_year, end_year)
+      union
+      select fcwmy_code from find_code_with_missing_years('securities_cash_flow_sheet_bank', start_year, end_year)
+      union
+      select fcwmy_code from find_code_with_missing_years('securities_cash_flow_sheet_general', start_year, end_year)
+      union
+      select fcwmy_code from find_code_with_missing_years('securities_cash_flow_sheet_insurance', start_year, end_year)
+      union
+      select fcwmy_code from find_code_with_missing_years('securities_cash_flow_sheet_securities', start_year, end_year)
+      union
+      select fcwmy_code from find_code_with_missing_years('securities_profit_sheet_bank', start_year, end_year)
+      union
+      select fcwmy_code from find_code_with_missing_years('securities_profit_sheet_general', start_year, end_year)
+      union
+      select fcwmy_code from find_code_with_missing_years('securities_profit_sheet_insurance', start_year, end_year)
+      union
+      select fcwmy_code from find_code_with_missing_years('securities_profit_sheet_securities', start_year, end_year)
+    );
+  end;
+$$ language plpgsql;
+
+drop function if exists find_code_with_data_completeness_level_2;
+create or replace function find_code_with_data_completeness_level_2(start_year integer, end_year integer)
+returns table (fcwdcl1_code varchar(6), fcwdcl1_name varchar(10)) as $$
+  begin
+  return query
+    select sc.code, sc.name from securities_code sc where sc.code not in (
+      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_bank', start_year, end_year, array[6,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_general', start_year, end_year, array[6,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_insurance', start_year, end_year, array[6,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_securities', start_year, end_year, array[6,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_bank', start_year, end_year, array[6,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_general', start_year, end_year, array[6,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_insurance', start_year, end_year, array[6,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_securities', start_year, end_year, array[6,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_bank', start_year, end_year, array[6,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_general', start_year, end_year, array[6,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_insurance', start_year, end_year, array[6,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_securities', start_year, end_year, array[6,12])
+    );
+  end;
+$$ language plpgsql;
+
+drop function if exists find_code_with_data_completeness_level_3;
+create or replace function find_code_with_data_completeness_level_3(start_year integer, end_year integer)
+returns table (fcwdcl1_code varchar(6), fcwdcl1_name varchar(10)) as $$
+  begin
+  return query
+    select sc.code, sc.name from securities_code sc where sc.code not in (
+      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_bank', start_year, end_year, array[3,6,9,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_general', start_year, end_year, array[3,6,9,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_insurance', start_year, end_year, array[3,6,9,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_securities', start_year, end_year, array[3,6,9,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_bank', start_year, end_year, array[3,6,9,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_general', start_year, end_year, array[3,6,9,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_insurance', start_year, end_year, array[3,6,9,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_securities', start_year, end_year, array[3,6,9,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_bank', start_year, end_year, array[3,6,9,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_general', start_year, end_year, array[3,6,9,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_insurance', start_year, end_year, array[3,6,9,12])
+      union
+      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_securities', start_year, end_year, array[3,6,9,12])
+    );
+  end;
+$$ language plpgsql;
+
+drop function if exists find_code_with_ipo_maturity_level_1;
+create or replace function find_code_with_ipo_maturity_level_1()
+returns table (fcwiml1_code varchar(6), fcwiml1_name varchar(10)) as $$
+  begin
+  return query
+    select sc.code, sc.name from securities_code sc
+    join securities_ipo si on si.code = sc.code
+    where extract(year from age(now(), si.ipo_time)) < 3;
+  end;
+$$ language plpgsql;
+
+drop function if exists find_code_with_ipo_maturity_level_2;
+create or replace function find_code_with_ipo_maturity_level_2()
+returns table (fcwiml2_code varchar(6), fcwiml2_name varchar(10)) as $$
+  begin
+  return query
+    select sc.code, sc.name from securities_code sc
+    join securities_ipo si on si.code = sc.code
+    where
+      extract(year from age(now(), si.ipo_time)) >= 3 and
+      extract(year from age(now(), si.ipo_time)) < 6;
+  end;
+$$ language plpgsql;
+
+drop function if exists find_code_with_ipo_maturity_level_3;
+create or replace function find_code_with_ipo_maturity_level_3()
+returns table (fcwiml3_code varchar(6), fcwiml3_name varchar(10)) as $$
+  begin
+  return query
+    select sc.code, sc.name from securities_code sc
+    join securities_ipo si on si.code = sc.code
+    where
+      extract(year from age(now(), si.ipo_time)) >= 6 and
+      extract(year from age(now(), si.ipo_time)) < 10;
+  end;
+$$ language plpgsql;
+
+drop function if exists find_code_with_ipo_maturity_level_4;
+create or replace function find_code_with_ipo_maturity_level_4()
+returns table (fcwiml4_code varchar(6), fcwiml4_name varchar(10)) as $$
+  begin
+  return query
+    select sc.code, sc.name from securities_code sc
+    join securities_ipo si on si.code = sc.code
+    where
+      extract(year from age(now(), si.ipo_time)) >= 10;
+  end;
+$$ language plpgsql;
+
 -- transaction_soldout_subtotal:
 -- 已结实盈(清仓个股)，曾经持有，目前清仓的证券
 -- 要分期初已持有和期初未持有

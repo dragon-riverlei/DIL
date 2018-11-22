@@ -182,4 +182,19 @@
 
 ***** Stage 3: more rigorous validation of data at DB side
         consistency of units
-***** Stage 4: analyze from DB
+***** Stage 4: analyze
+****** level of data completeness for financial statements (balance sheet, cash flow sheet and profit sheet)
+        The higher of the level, the more complete of the data.
+        The higher level meets all the criteria of the lower level.
+       - level 1: having consecutive annual reports in given range of years.
+                  Entry level, data not meeting the criteria won't be taken into account.
+       - level 2: having consecutive semi-annual reports in given range of years.
+       - level 3: having consecutive quarterly reports in given range of years.
+****** level of maturity since IPO
+        The higher of the level, the more mature of the stocks.
+        The higher level meets all the criteria of the lower level.
+        For companies whose IPOs are earlier than the date of earliest available data, use the earliest date of the data as IPO date.
+       - level 1: less than 3 years from now since IPO
+       - level 2: equal or greater than 3 years but less than 6 years from now since IPO
+       - level 3: equal or greater than 6 years but less than 10 years from now since IPO
+       - level 4: equal or greater than 10 years
