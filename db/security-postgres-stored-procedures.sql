@@ -220,7 +220,7 @@ $$ language plpgsql;
 
 drop function if exists find_code_with_data_completeness_level_2;
 create or replace function find_code_with_data_completeness_level_2(start_year integer, end_year integer)
-returns table (fcwdcl1_code varchar(6), fcwdcl1_name varchar(10)) as $$
+returns table (fcwdcl2_code varchar(6), fcwdcl2_name varchar(10)) as $$
   begin
   return query
     select sc.code, sc.name from securities_code sc where sc.code not in (
@@ -253,7 +253,7 @@ $$ language plpgsql;
 
 drop function if exists find_code_with_data_completeness_level_3;
 create or replace function find_code_with_data_completeness_level_3(start_year integer, end_year integer)
-returns table (fcwdcl1_code varchar(6), fcwdcl1_name varchar(10)) as $$
+returns table (fcwdcl3_code varchar(6), fcwdcl3_name varchar(10)) as $$
   begin
   return query
     select sc.code, sc.name from securities_code sc where sc.code not in (
