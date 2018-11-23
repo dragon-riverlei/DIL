@@ -7,6 +7,7 @@ create table if not exists securities_code (
   market varchar(10) not null, -- 证券市场名称
   country varchar(5) not null  -- 证券市场所在国家
 );
+
 create table if not exists securities_ipo (
   code varchar(6) primary key, -- 证券代码
   found_time date not null, -- 成立日期
@@ -16,6 +17,7 @@ create table if not exists securities_ipo (
   ipo_cap numeric(20,4) not null, -- 发行市值
   ipo_per numeric(10,4) -- 发行市盈率
 );
+
 create table if not exists securities_dividend (
   code varchar(6) not null, -- 证券代码
   time date not null,   -- 财务年度
@@ -33,6 +35,7 @@ create table if not exists securities_dividend (
   除权除息日后30日涨幅 numeric(6,2),
   primary key (code, time)
 );
+
 create table if not exists securities_day_quote (
   time date not null, -- 日期
   code varchar(6) not null, -- 证券代码
@@ -42,6 +45,7 @@ create table if not exists securities_day_quote (
   pbr numeric(10,4) not null  , -- 市净率
   primary key (code, time)
 );
+
 create table if not exists securities_balance_sheet_bank (
   code varchar(6) not null, -- 证券代码
   time date not null, -- 日期
@@ -104,6 +108,7 @@ create table if not exists securities_balance_sheet_bank (
   负债及股东权益总计 numeric(20,2) not null,
   primary key (code, time)
 );
+
 create table if not exists securities_balance_sheet_general (
   code varchar(6) not null, -- 证券代码
   time date not null, -- 日期
@@ -192,6 +197,7 @@ create table if not exists securities_balance_sheet_general (
   负债和所有者权益（或股东权益）总计 numeric(20,2) not null,
   primary key (code, time)
 );
+
 create table if not exists securities_balance_sheet_securities (
   code varchar(6) not null, -- 证券代码
   time date not null, -- 日期
@@ -255,6 +261,7 @@ create table if not exists securities_balance_sheet_securities (
   负债及股东权益总计 numeric(20,2) not null,
   primary key (code, time)
 );
+
 create table if not exists securities_balance_sheet_insurance (
   code varchar(6) not null, -- 证券代码
   time date not null, -- 日期
@@ -327,6 +334,7 @@ create table if not exists securities_balance_sheet_insurance (
   负债及股东权益总计 numeric(20,2) not null,
   primary key (code, time)
 );
+
 -- create table if not exists securities_balance_sheet (
 --   time date not null, -- 日期
 --   code varchar(6) not null, -- 证券代码
@@ -340,6 +348,7 @@ create table if not exists securities_balance_sheet_insurance (
 --   total_equity numeric(20,2) not null, -- 股东权益合计
 --   primary key (code, time)
 -- );
+
 create table if not exists securities_cash_flow_sheet_bank (
   code  varchar(6) not null, -- 证券代码
   time date not null, -- 日期
@@ -439,6 +448,7 @@ create table if not exists securities_cash_flow_sheet_bank (
   现金及现金等价物净增加额 numeric(20,2) not null,
   primary key (code, time)
 );
+
 create table if not exists securities_cash_flow_sheet_general (
   code  varchar(6) not null, -- 证券代码
   time date not null, -- 日期
@@ -519,6 +529,7 @@ create table if not exists securities_cash_flow_sheet_general (
   现金及现金等价物的净增加额 numeric(20,2) not null,
   primary key (code, time)
 );
+
 create table if not exists securities_cash_flow_sheet_securities (
   code  varchar(6) not null, -- 证券代码
   time date not null, -- 日期
@@ -598,6 +609,7 @@ create table if not exists securities_cash_flow_sheet_securities (
   现金及现金等价物净增加额 numeric(20,2) not null,
   primary key (code, time)
 );
+
 create table if not exists securities_cash_flow_sheet_insurance (
   code  varchar(6) not null, -- 证券代码
   time date not null, -- 日期
@@ -683,6 +695,7 @@ create table if not exists securities_cash_flow_sheet_insurance (
   现金及现金等价物净增加_（减少）额 numeric(20,2) not null,
   primary key (code, time)
 );
+
 create table if not exists securities_profit_sheet_bank (
   code varchar(6) not null, -- 证券代码
   time date not null, -- 日期
@@ -720,6 +733,7 @@ create table if not exists securities_profit_sheet_bank (
   归属于少数股东的综合收益总额 numeric(20,2) not null,
   primary key (code, time)
 );
+
 create table if not exists securities_profit_sheet_general (
   code varchar(6) not null, -- 证券代码
   time date not null, -- 日期
@@ -754,6 +768,7 @@ create table if not exists securities_profit_sheet_general (
   归属于少数股东的综合收益总额 numeric(20,2) not null,
   primary key (code, time)
 );
+
 create table if not exists securities_profit_sheet_securities (
   code varchar(6) not null, -- 证券代码
   time date not null, -- 日期
@@ -792,6 +807,7 @@ create table if not exists securities_profit_sheet_securities (
   归属于少数股东的综合收益总额 numeric(20,2) not null,
   primary key (code, time)
 );
+
 create table if not exists securities_profit_sheet_insurance (
   code varchar(6) not null, -- 证券代码
   time date not null, -- 日期
@@ -837,6 +853,7 @@ create table if not exists securities_profit_sheet_insurance (
   归属于少数股东的综合收益总额 numeric(20,2) not null,
   primary key (code, time)
 );
+
 -- create table if not exists securities_cash_flow_sheet (
 --   time date not null, -- 日期
 --   code varchar(6) not null, -- 证券代码
@@ -859,6 +876,7 @@ create table if not exists securities_profit_sheet_insurance (
 --   total_income_parent_company numeric(20,2), -- 归属于母公司所有者的综合收益总额
 --   primary key (code, time)
 -- );
+
 create table if not exists securities_kpi (
   code varchar(6) not null, -- 证券代码
   time date not null, -- 报告期
@@ -884,6 +902,7 @@ create table if not exists securities_kpi (
   -- MFRation13  numeric(20,4), -- 股东权益不含少数股东权益（万元）
   primary key (code, time)
 );
+
 create table if not exists securities_transaction (
   id SERIAL not null primary key,
   time date not null, -- 成交日期
@@ -894,6 +913,7 @@ create table if not exists securities_transaction (
   amount numeric(20,4), -- 发生金额（元）
   balance numeric(20,4) -- 剩余金额（元）
 );
+
 create table if not exists securities_holding (
   id SERIAL not null primary key,
   time date not null, -- 日期
@@ -902,11 +922,13 @@ create table if not exists securities_holding (
   cost numeric(10,4), -- 成本价格（元）
   vol numeric(20,2) -- 存量(股)
 );
+
 create table if not exists cash_holding (
   id SERIAL not null primary key,
   time date not null, -- 日期
   amount numeric(20,4) -- 金额（元）
 );
+
 create table if not exists securities_stock_structure (
   code varchar(6) not null, -- 证券代码
   time date not null, -- 日期
