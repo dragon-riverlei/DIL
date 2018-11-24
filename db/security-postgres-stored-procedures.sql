@@ -185,101 +185,76 @@ returns table (rcwmm_code varchar(6), rcwmm_name varchar(10), rcwmm_year integer
   end;
 $$ language plpgsql;
 
-drop function if exists find_code_with_data_completeness_level_1;
-create or replace function find_code_with_data_completeness_level_1(start_year integer, end_year integer)
-returns table (fcwdcl1_code varchar(6), fcwdcl1_name varchar(10)) as $$
+drop function if exists find_code_with_data_completeness_level;
+create or replace function find_code_with_data_completeness_level(
+  level integer, start_year integer, end_year integer,
+  cur_expected_months integer[] default array[]::integer[])
+returns table (fcwdcl_code varchar(6), fcwdcl_name varchar(10)) as $$
+  declare
+    pre_expected_months integer[];
+    this_year integer := extract(year from now())::integer;
   begin
+  case level
+    when 1 then
+      pre_expected_months := array[]::integer[];
+    when 2 then
+      pre_expected_months := array[6,12];
+    when 3 then
+      pre_expected_months := array[3,6,9,12];
+    else
+      raise exception 'Unexpected level %.', level;
+  end case;
   return query
     select sc.code, sc.name from securities_code sc where sc.code not in (
-      select fcwmy_code from find_code_with_missing_years('securities_balance_sheet_bank', start_year, end_year)
+      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_bank', start_year, end_year, pre_expected_months)
       union
-      select fcwmy_code from find_code_with_missing_years('securities_balance_sheet_general', start_year, end_year)
+      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_general', start_year, end_year, pre_expected_months)
       union
-      select fcwmy_code from find_code_with_missing_years('securities_balance_sheet_insurance', start_year, end_year)
+      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_insurance', start_year, end_year, pre_expected_months)
       union
-      select fcwmy_code from find_code_with_missing_years('securities_balance_sheet_securities', start_year, end_year)
+      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_securities', start_year, end_year, pre_expected_months)
       union
-      select fcwmy_code from find_code_with_missing_years('securities_cash_flow_sheet_bank', start_year, end_year)
+      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_bank', start_year, end_year, pre_expected_months)
       union
-      select fcwmy_code from find_code_with_missing_years('securities_cash_flow_sheet_general', start_year, end_year)
+      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_general', start_year, end_year, pre_expected_months)
       union
-      select fcwmy_code from find_code_with_missing_years('securities_cash_flow_sheet_insurance', start_year, end_year)
+      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_insurance', start_year, end_year, pre_expected_months)
       union
-      select fcwmy_code from find_code_with_missing_years('securities_cash_flow_sheet_securities', start_year, end_year)
+      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_securities', start_year, end_year, pre_expected_months)
       union
-      select fcwmy_code from find_code_with_missing_years('securities_profit_sheet_bank', start_year, end_year)
+      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_bank', start_year, end_year, pre_expected_months)
       union
-      select fcwmy_code from find_code_with_missing_years('securities_profit_sheet_general', start_year, end_year)
+      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_general', start_year, end_year, pre_expected_months)
       union
-      select fcwmy_code from find_code_with_missing_years('securities_profit_sheet_insurance', start_year, end_year)
+      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_insurance', start_year, end_year, pre_expected_months)
       union
-      select fcwmy_code from find_code_with_missing_years('securities_profit_sheet_securities', start_year, end_year)
-    );
-  end;
-$$ language plpgsql;
-
-drop function if exists find_code_with_data_completeness_level_2;
-create or replace function find_code_with_data_completeness_level_2(start_year integer, end_year integer)
-returns table (fcwdcl2_code varchar(6), fcwdcl2_name varchar(10)) as $$
-  begin
-  return query
+      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_securities', start_year, end_year, pre_expected_months)
+    )
+    intersect
     select sc.code, sc.name from securities_code sc where sc.code not in (
-      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_bank', start_year, end_year, array[6,12])
+      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_bank', this_year, this_year, cur_expected_months)
       union
-      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_general', start_year, end_year, array[6,12])
+      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_general', this_year, this_year, cur_expected_months)
       union
-      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_insurance', start_year, end_year, array[6,12])
+      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_insurance', this_year, this_year, cur_expected_months)
       union
-      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_securities', start_year, end_year, array[6,12])
+      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_securities', this_year, this_year, cur_expected_months)
       union
-      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_bank', start_year, end_year, array[6,12])
+      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_bank', this_year, this_year, cur_expected_months)
       union
-      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_general', start_year, end_year, array[6,12])
+      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_general', this_year, this_year, cur_expected_months)
       union
-      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_insurance', start_year, end_year, array[6,12])
+      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_insurance', this_year, this_year, cur_expected_months)
       union
-      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_securities', start_year, end_year, array[6,12])
+      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_securities', this_year, this_year, cur_expected_months)
       union
-      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_bank', start_year, end_year, array[6,12])
+      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_bank', this_year, this_year, cur_expected_months)
       union
-      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_general', start_year, end_year, array[6,12])
+      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_general', this_year, this_year, cur_expected_months)
       union
-      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_insurance', start_year, end_year, array[6,12])
+      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_insurance', this_year, this_year, cur_expected_months)
       union
-      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_securities', start_year, end_year, array[6,12])
-    );
-  end;
-$$ language plpgsql;
-
-drop function if exists find_code_with_data_completeness_level_3;
-create or replace function find_code_with_data_completeness_level_3(start_year integer, end_year integer)
-returns table (fcwdcl3_code varchar(6), fcwdcl3_name varchar(10)) as $$
-  begin
-  return query
-    select sc.code, sc.name from securities_code sc where sc.code not in (
-      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_bank', start_year, end_year, array[3,6,9,12])
-      union
-      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_general', start_year, end_year, array[3,6,9,12])
-      union
-      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_insurance', start_year, end_year, array[3,6,9,12])
-      union
-      select fcwmm_code from find_code_with_missing_months('securities_balance_sheet_securities', start_year, end_year, array[3,6,9,12])
-      union
-      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_bank', start_year, end_year, array[3,6,9,12])
-      union
-      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_general', start_year, end_year, array[3,6,9,12])
-      union
-      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_insurance', start_year, end_year, array[3,6,9,12])
-      union
-      select fcwmm_code from find_code_with_missing_months('securities_cash_flow_sheet_securities', start_year, end_year, array[3,6,9,12])
-      union
-      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_bank', start_year, end_year, array[3,6,9,12])
-      union
-      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_general', start_year, end_year, array[3,6,9,12])
-      union
-      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_insurance', start_year, end_year, array[3,6,9,12])
-      union
-      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_securities', start_year, end_year, array[3,6,9,12])
+      select fcwmm_code from find_code_with_missing_months('securities_profit_sheet_securities', this_year, this_year, cur_expected_months)
     );
   end;
 $$ language plpgsql;
