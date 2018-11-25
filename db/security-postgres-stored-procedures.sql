@@ -259,52 +259,27 @@ returns table (fcwdcl_code varchar(6), fcwdcl_name varchar(10)) as $$
   end;
 $$ language plpgsql;
 
-drop function if exists find_code_with_ipo_maturity_level_1;
-create or replace function find_code_with_ipo_maturity_level_1()
-returns table (fcwiml1_code varchar(6), fcwiml1_name varchar(10)) as $$
+drop function if exists find_code_with_ipo_maturity_level;
+create or replace function find_code_with_ipo_maturity_level(level integer)
+returns table (fcwiml_code varchar(6), fcwiml_name varchar(10)) as $$
+  declare
+    low_bound integer;
+    high_bound integer;
   begin
-  return query
-    select sc.code, sc.name from securities_code sc
-    join securities_ipo si on si.code = sc.code
-    where extract(year from age(now(), si.ipo_time)) < 3;
-  end;
-$$ language plpgsql;
-
-drop function if exists find_code_with_ipo_maturity_level_2;
-create or replace function find_code_with_ipo_maturity_level_2()
-returns table (fcwiml2_code varchar(6), fcwiml2_name varchar(10)) as $$
-  begin
-  return query
-    select sc.code, sc.name from securities_code sc
-    join securities_ipo si on si.code = sc.code
-    where
-      extract(year from age(now(), si.ipo_time)) >= 3 and
-      extract(year from age(now(), si.ipo_time)) < 6;
-  end;
-$$ language plpgsql;
-
-drop function if exists find_code_with_ipo_maturity_level_3;
-create or replace function find_code_with_ipo_maturity_level_3()
-returns table (fcwiml3_code varchar(6), fcwiml3_name varchar(10)) as $$
-  begin
+  case level
+    when 1 then low_bound = 0; high_bound = 3;
+    when 2 then low_bound = 3; high_bound = 6;
+    when 3 then low_bound = 6; high_bound = 10;
+    when 4 then low_bound = 10; high_bound = 10000;
+    else
+      raise exception 'Unexpected level %.', level;
+  end case;
   return query
     select sc.code, sc.name from securities_code sc
     join securities_ipo si on si.code = sc.code
     where
-      extract(year from age(now(), si.ipo_time)) >= 6 and
-      extract(year from age(now(), si.ipo_time)) < 10;
-  end;
-$$ language plpgsql;
-
-drop function if exists find_code_with_ipo_maturity_level_4;
-create or replace function find_code_with_ipo_maturity_level_4()
-returns table (fcwiml4_code varchar(6), fcwiml4_name varchar(10)) as $$
-  begin
-  return query
-    select sc.code, sc.name from securities_code sc
-    join securities_ipo si on si.code = sc.code
-    where
-      extract(year from age(now(), si.ipo_time)) >= 10;
+      extract(year from age(now(), si.ipo_time)) >= low_bound and
+      extract(year from age(now(), si.ipo_time)) < high_bound;
   end;
 $$ language plpgsql;
 
