@@ -49,7 +49,7 @@ returns table (code varchar(6), "time" date) as $$
       '
       select distinct code, time from (
         select code, time from %s
-        where extract(year from time) >= %s and extract(year from time) <= %s
+        where extract(year from time) between %s and %s
       ) t1;
       ', tbl, start_year, end_year);
   end;
