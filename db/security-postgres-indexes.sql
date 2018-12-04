@@ -12,6 +12,7 @@ drop index if exists  securities_profit_sheet_bank_idx_year;
 drop index if exists  securities_profit_sheet_general_idx_year;
 drop index if exists  securities_profit_sheet_securities_idx_year;
 drop index if exists  securities_profit_sheet_insurance_idx_year;
+drop index if exists  securities_profit_sheet_running_total_idx_year;
 drop index if exists  securities_kpi_idx_year;
 drop index if exists  securities_stock_structure_idx_year;
 drop index if exists  securities_ipo_idx_month;
@@ -28,6 +29,7 @@ drop index if exists  securities_profit_sheet_bank_idx_month;
 drop index if exists  securities_profit_sheet_general_idx_month;
 drop index if exists  securities_profit_sheet_securities_idx_month;
 drop index if exists  securities_profit_sheet_insurance_idx_month;
+drop index if exists  securities_profit_sheet_running_total_idx_month;
 drop index if exists  securities_kpi_idx_month;
 drop index if exists  securities_stock_structure_idx_month;
 
@@ -45,6 +47,7 @@ create index securities_profit_sheet_bank_idx_year on securities_profit_sheet_ba
 create index securities_profit_sheet_general_idx_year on securities_profit_sheet_general ((extract(year from time)));
 create index securities_profit_sheet_securities_idx_year on securities_profit_sheet_securities ((extract(year from time)));
 create index securities_profit_sheet_insurance_idx_year on securities_profit_sheet_insurance ((extract(year from time)));
+create index securities_profit_sheet_running_total_idx_year on securities_profit_sheet_running_total ((extract(year from time)));
 create index securities_kpi_idx_year on securities_kpi ((extract(year from time)));
 create index securities_stock_structure_idx_year on securities_stock_structure ((extract(year from time)));
 create index securities_ipo_idx_month on securities_ipo ((extract(month from ipo_time)));
@@ -61,5 +64,6 @@ create index securities_profit_sheet_bank_idx_month on securities_profit_sheet_b
 create index securities_profit_sheet_general_idx_month on securities_profit_sheet_general ((extract(month from time)));
 create index securities_profit_sheet_securities_idx_month on securities_profit_sheet_securities ((extract(month from time)));
 create index securities_profit_sheet_insurance_idx_month on securities_profit_sheet_insurance ((extract(month from time)));
+create index securities_profit_sheet_running_total_idx_month on securities_profit_sheet_running_total ((extract(month from time)));
 create index securities_kpi_idx_month on securities_kpi ((extract(month from time)));
 create index securities_stock_structure_idx_month on securities_stock_structure ((extract(month from time)));

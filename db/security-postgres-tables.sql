@@ -854,6 +854,17 @@ create table if not exists securities_profit_sheet_insurance (
   primary key (code, time)
 );
 
+create table if not exists securities_profit_sheet_running_total (
+  code varchar(6) not null, -- 证券代码
+  time date not null, -- 日期
+  营业收入 numeric(20,2), -- 一、营业收入
+  营业支出 numeric(20,2), -- 二、营业支出
+  营业利润 numeric(20,2), -- 三、营业利润
+  利润总额 numeric(20,2), -- 四、利润总额
+  净利润 numeric(20,2), -- 五、净利润
+  primary key (code, time)
+);
+
 -- create table if not exists securities_cash_flow_sheet (
 --   time date not null, -- 日期
 --   code varchar(6) not null, -- 证券代码
