@@ -451,485 +451,6 @@ where
 end;
 $$ language plpgsql;
 
-drop function if exists securities_profit_sheet_bank_running_total_single_year;
-create or replace function securities_profit_sheet_bank_running_total_single_year(single_year integer)
-returns table (psbrtsy_code varchar(6), psbrtsy_time date,
-               psbrtsy_营业收入 numeric(20,2), psbrtsy_营业支出 numeric(20,2),
-               psbrtsy_营业利润 numeric(20,2), psbrtsy_利润总额 numeric(20,2), psbrtsy_净利润 numeric(20,2)) as $$
-begin
-return query (
-with
-profit_only_3 as (
-  select code, "time",
-    lag(一、营业收入,2) over(partition by code order by "time") lag2_一、营业收入,
-    lag(一、营业收入,1) over(partition by code order by "time") lag1_一、营业收入,
-    一、营业收入,
-    lag(二、营业支出,2) over(partition by code order by "time") lag2_二、营业支出,
-    lag(二、营业支出,1) over(partition by code order by "time") lag1_二、营业支出,
-    二、营业支出,
-    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
-    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
-    三、营业利润,
-    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
-    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
-    四、利润总额,
-    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
-    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
-    五、净利润
-  from securities_profit_sheet_bank
-  where
-    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
-    (extract(month from "time")::integer = 3 or extract(month from "time")::integer = 12) and
-    code in (select distinct code from securities_profit_sheet_running_total)
-),
-profit_only_6 as (
-  select code, "time",
-    lag(一、营业收入,2) over(partition by code order by "time") lag2_一、营业收入,
-    lag(一、营业收入,1) over(partition by code order by "time") lag1_一、营业收入,
-    一、营业收入,
-    lag(二、营业支出,2) over(partition by code order by "time") lag2_二、营业支出,
-    lag(二、营业支出,1) over(partition by code order by "time") lag1_二、营业支出,
-    二、营业支出,
-    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
-    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
-    三、营业利润,
-    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
-    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
-    四、利润总额,
-    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
-    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
-    五、净利润
-  from securities_profit_sheet_bank
-  where
-    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
-    (extract(month from "time")::integer = 6 or extract(month from "time")::integer = 12) and
-    code in (select distinct code from securities_profit_sheet_running_total)
-),
-profit_only_9 as (
-  select code, "time",
-    lag(一、营业收入,2) over(partition by code order by "time") lag2_一、营业收入,
-    lag(一、营业收入,1) over(partition by code order by "time") lag1_一、营业收入,
-    一、营业收入,
-    lag(二、营业支出,2) over(partition by code order by "time") lag2_二、营业支出,
-    lag(二、营业支出,1) over(partition by code order by "time") lag1_二、营业支出,
-    二、营业支出,
-    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
-    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
-    三、营业利润,
-    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
-    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
-    四、利润总额,
-    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
-    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
-    五、净利润
-  from securities_profit_sheet_bank
-  where
-    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
-    (extract(month from "time")::integer = 9 or extract(month from "time")::integer = 12) and
-    code in (select distinct code from securities_profit_sheet_running_total)
-)
-
-select
-  code, "time",
-  "一、营业收入" + "lag1_一、营业收入" - "lag2_一、营业收入" "一、营业收入",
-  "二、营业支出" + "lag1_二、营业支出" - "lag2_二、营业支出" "二、营业支出",
-  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
-  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
-  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
-from profit_only_3
-where extract(month from "time")::integer <> 12
-union
-select
-  code, "time",
-  "一、营业收入" + "lag1_一、营业收入" - "lag2_一、营业收入" "一、营业收入",
-  "二、营业支出" + "lag1_二、营业支出" - "lag2_二、营业支出" "二、营业支出",
-  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
-  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
-  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
-from profit_only_6
-where extract(month from "time")::integer <> 12
-union
-select
-  code, "time",
-  "一、营业收入" + "lag1_一、营业收入" - "lag2_一、营业收入" "一、营业收入",
-  "二、营业支出" + "lag1_二、营业支出" - "lag2_二、营业支出" "二、营业支出",
-  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
-  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
-  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
-from profit_only_9
-where extract(month from "time")::integer <> 12
-union
-select
-  code, "time",
-  "一、营业收入", "二、营业支出",
-  "三、营业利润", "四、利润总额", "五、净利润" from securities_profit_sheet_bank
-where
-  extract(year from "time") = single_year and
-  extract(month from "time")::integer = 12 and
-  code in (select distinct code from securities_profit_sheet_running_total)
-);
-end;
-$$ language plpgsql;
-
-drop function if exists securities_profit_sheet_general_running_total_single_year;
-create or replace function securities_profit_sheet_general_running_total_single_year(single_year integer)
-returns table (psgrtsy_code varchar(6), psgrtsy_time date,
-               psgrtsy_营业收入 numeric(20,2), psgrtsy_营业支出 numeric(20,2),
-               psgrtsy_营业利润 numeric(20,2), psgrtsy_利润总额 numeric(20,2), psgrtsy_净利润 numeric(20,2)) as $$
-begin
-return query (
-with
-profit_only_3 as (
-  select code, "time",
-    lag(一、营业总收入,2) over(partition by code order by "time") lag2_一、营业总收入,
-    lag(一、营业总收入,1) over(partition by code order by "time") lag1_一、营业总收入,
-    一、营业总收入,
-    lag(二、营业总成本,2) over(partition by code order by "time") lag2_二、营业总成本,
-    lag(二、营业总成本,1) over(partition by code order by "time") lag1_二、营业总成本,
-    二、营业总成本,
-    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
-    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
-    三、营业利润,
-    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
-    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
-    四、利润总额,
-    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
-    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
-    五、净利润
-  from securities_profit_sheet_general
-  where
-    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
-    (extract(month from "time")::integer = 3 or extract(month from "time")::integer = 12) and
-    code in (select distinct code from securities_profit_sheet_running_total)
-),
-profit_only_6 as (
-  select code, "time",
-    lag(一、营业总收入,2) over(partition by code order by "time") lag2_一、营业总收入,
-    lag(一、营业总收入,1) over(partition by code order by "time") lag1_一、营业总收入,
-    一、营业总收入,
-    lag(二、营业总成本,2) over(partition by code order by "time") lag2_二、营业总成本,
-    lag(二、营业总成本,1) over(partition by code order by "time") lag1_二、营业总成本,
-    二、营业总成本,
-    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
-    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
-    三、营业利润,
-    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
-    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
-    四、利润总额,
-    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
-    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
-    五、净利润
-  from securities_profit_sheet_general
-  where
-    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
-    (extract(month from "time")::integer = 6 or extract(month from "time")::integer = 12) and
-    code in (select distinct code from securities_profit_sheet_running_total)
-),
-profit_only_9 as (
-  select code, "time",
-    lag(一、营业总收入,2) over(partition by code order by "time") lag2_一、营业总收入,
-    lag(一、营业总收入,1) over(partition by code order by "time") lag1_一、营业总收入,
-    一、营业总收入,
-    lag(二、营业总成本,2) over(partition by code order by "time") lag2_二、营业总成本,
-    lag(二、营业总成本,1) over(partition by code order by "time") lag1_二、营业总成本,
-    二、营业总成本,
-    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
-    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
-    三、营业利润,
-    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
-    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
-    四、利润总额,
-    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
-    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
-    五、净利润
-  from securities_profit_sheet_general
-  where
-    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
-    (extract(month from "time")::integer = 9 or extract(month from "time")::integer = 12) and
-    code in (select distinct code from securities_profit_sheet_running_total)
-)
-
-select
-  code, "time",
-  "一、营业总收入" + "lag1_一、营业总收入" - "lag2_一、营业总收入" "一、营业收入",
-  "二、营业总成本" + "lag1_二、营业总成本" - "lag2_二、营业总成本" "二、营业支出",
-  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
-  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
-  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
-from profit_only_3
-where extract(month from "time")::integer <> 12
-union
-select
-  code, "time",
-  "一、营业总收入" + "lag1_一、营业总收入" - "lag2_一、营业总收入" "一、营业收入",
-  "二、营业总成本" + "lag1_二、营业总成本" - "lag2_二、营业总成本" "二、营业支出",
-  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
-  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
-  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
-from profit_only_6
-where extract(month from "time")::integer <> 12
-union
-select
-  code, "time",
-  "一、营业总收入" + "lag1_一、营业总收入" - "lag2_一、营业总收入" "一、营业收入",
-  "二、营业总成本" + "lag1_二、营业总成本" - "lag2_二、营业总成本" "二、营业支出",
-  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
-  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
-  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
-from profit_only_9
-where extract(month from "time")::integer <> 12
-union
-select
-  code, "time",
-  "一、营业总收入" "一、营业收入", "二、营业总成本" "二、营业支出",
-  "三、营业利润", "四、利润总额", "五、净利润" from securities_profit_sheet_general
-where
-  extract(year from "time") = single_year and
-  extract(month from "time")::integer = 12 and
-  code in (select distinct code from securities_profit_sheet_running_total)
-);
-end;
-$$ language plpgsql;
-
-drop function if exists securities_profit_sheet_securities_running_total_single_year;
-create or replace function securities_profit_sheet_securities_running_total_single_year(single_year integer)
-returns table (pssrtsy_code varchar(6), pssrtsy_time date,
-               pssrtsy_营业收入 numeric(20,2), pssrtsy_营业支出 numeric(20,2),
-               pssrtsy_营业利润 numeric(20,2), pssrtsy_利润总额 numeric(20,2), pssrtsy_净利润 numeric(20,2)) as $$
-begin
-return query (
-with
-profit_only_3 as (
-  select code, "time",
-    lag(一、营业收入,2) over(partition by code order by "time") lag2_一、营业收入,
-    lag(一、营业收入,1) over(partition by code order by "time") lag1_一、营业收入,
-    一、营业收入,
-    lag(二、营业支出,2) over(partition by code order by "time") lag2_二、营业支出,
-    lag(二、营业支出,1) over(partition by code order by "time") lag1_二、营业支出,
-    二、营业支出,
-    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
-    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
-    三、营业利润,
-    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
-    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
-    四、利润总额,
-    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
-    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
-    五、净利润
-  from securities_profit_sheet_securities
-  where
-    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
-    (extract(month from "time")::integer = 3 or extract(month from "time")::integer = 12) and
-    code in (select distinct code from securities_profit_sheet_running_total)
-),
-profit_only_6 as (
-  select code, "time",
-    lag(一、营业收入,2) over(partition by code order by "time") lag2_一、营业收入,
-    lag(一、营业收入,1) over(partition by code order by "time") lag1_一、营业收入,
-    一、营业收入,
-    lag(二、营业支出,2) over(partition by code order by "time") lag2_二、营业支出,
-    lag(二、营业支出,1) over(partition by code order by "time") lag1_二、营业支出,
-    二、营业支出,
-    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
-    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
-    三、营业利润,
-    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
-    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
-    四、利润总额,
-    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
-    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
-    五、净利润
-  from securities_profit_sheet_securities
-  where
-    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
-    (extract(month from "time")::integer = 6 or extract(month from "time")::integer = 12) and
-    code in (select distinct code from securities_profit_sheet_running_total)
-),
-profit_only_9 as (
-  select code, "time",
-    lag(一、营业收入,2) over(partition by code order by "time") lag2_一、营业收入,
-    lag(一、营业收入,1) over(partition by code order by "time") lag1_一、营业收入,
-    一、营业收入,
-    lag(二、营业支出,2) over(partition by code order by "time") lag2_二、营业支出,
-    lag(二、营业支出,1) over(partition by code order by "time") lag1_二、营业支出,
-    二、营业支出,
-    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
-    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
-    三、营业利润,
-    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
-    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
-    四、利润总额,
-    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
-    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
-    五、净利润
-  from securities_profit_sheet_securities
-  where
-    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
-    (extract(month from "time")::integer = 9 or extract(month from "time")::integer = 12) and
-    code in (select distinct code from securities_profit_sheet_running_total)
-)
-
-select
-  code, "time",
-  "一、营业收入" + "lag1_一、营业收入" - "lag2_一、营业收入" "一、营业收入",
-  "二、营业支出" + "lag1_二、营业支出" - "lag2_二、营业支出" "二、营业支出",
-  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
-  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
-  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
-from profit_only_3
-where extract(month from "time")::integer <> 12
-union
-select
-  code, "time",
-  "一、营业收入" + "lag1_一、营业收入" - "lag2_一、营业收入" "一、营业收入",
-  "二、营业支出" + "lag1_二、营业支出" - "lag2_二、营业支出" "二、营业支出",
-  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
-  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
-  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
-from profit_only_6
-where extract(month from "time")::integer <> 12
-union
-select
-  code, "time",
-  "一、营业收入" + "lag1_一、营业收入" - "lag2_一、营业收入" "一、营业收入",
-  "二、营业支出" + "lag1_二、营业支出" - "lag2_二、营业支出" "二、营业支出",
-  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
-  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
-  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
-from profit_only_9
-where extract(month from "time")::integer <> 12
-union
-select
-  code, "time",
-  "一、营业收入", "二、营业支出",
-  "三、营业利润", "四、利润总额", "五、净利润" from securities_profit_sheet_securities
-where
-  extract(year from "time") = single_year and
-  extract(month from "time")::integer = 12 and
-  code in (select distinct code from securities_profit_sheet_running_total)
-);
-end;
-$$ language plpgsql;
-
-drop function if exists securities_profit_sheet_insurance_running_total_single_year;
-create or replace function securities_profit_sheet_insurance_running_total_single_year(single_year integer)
-returns table (psirtsy_code varchar(6), psirtsy_time date,
-               psirtsy_营业收入 numeric(20,2), psirtsy_营业支出 numeric(20,2),
-               psirtsy_营业利润 numeric(20,2), psirtsy_利润总额 numeric(20,2), psirtsy_净利润 numeric(20,2)) as $$
-begin
-return query (
-with
-profit_only_3 as (
-  select code, "time",
-    lag(一、营业收入,2) over(partition by code order by "time") lag2_一、营业收入,
-    lag(一、营业收入,1) over(partition by code order by "time") lag1_一、营业收入,
-    一、营业收入,
-    lag(二、营业支出,2) over(partition by code order by "time") lag2_二、营业支出,
-    lag(二、营业支出,1) over(partition by code order by "time") lag1_二、营业支出,
-    二、营业支出,
-    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
-    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
-    三、营业利润,
-    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
-    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
-    四、利润总额,
-    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
-    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
-    五、净利润
-  from securities_profit_sheet_insurance
-  where
-    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
-    (extract(month from "time")::integer = 3 or extract(month from "time")::integer = 12) and
-    code in (select distinct code from securities_profit_sheet_running_total)
-),
-profit_only_6 as (
-  select code, "time",
-    lag(一、营业收入,2) over(partition by code order by "time") lag2_一、营业收入,
-    lag(一、营业收入,1) over(partition by code order by "time") lag1_一、营业收入,
-    一、营业收入,
-    lag(二、营业支出,2) over(partition by code order by "time") lag2_二、营业支出,
-    lag(二、营业支出,1) over(partition by code order by "time") lag1_二、营业支出,
-    二、营业支出,
-    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
-    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
-    三、营业利润,
-    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
-    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
-    四、利润总额,
-    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
-    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
-    五、净利润
-  from securities_profit_sheet_insurance
-  where
-    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
-    (extract(month from "time")::integer = 6 or extract(month from "time")::integer = 12) and
-    code in (select distinct code from securities_profit_sheet_running_total)
-),
-profit_only_9 as (
-  select code, "time",
-    lag(一、营业收入,2) over(partition by code order by "time") lag2_一、营业收入,
-    lag(一、营业收入,1) over(partition by code order by "time") lag1_一、营业收入,
-    一、营业收入,
-    lag(二、营业支出,2) over(partition by code order by "time") lag2_二、营业支出,
-    lag(二、营业支出,1) over(partition by code order by "time") lag1_二、营业支出,
-    二、营业支出,
-    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
-    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
-    三、营业利润,
-    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
-    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
-    四、利润总额,
-    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
-    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
-    五、净利润
-  from securities_profit_sheet_insurance
-  where
-    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
-    (extract(month from "time")::integer = 9 or extract(month from "time")::integer = 12) and
-    code in (select distinct code from securities_profit_sheet_running_total)
-)
-
-select
-  code, "time",
-  "一、营业收入" + "lag1_一、营业收入" - "lag2_一、营业收入" "一、营业收入",
-  "二、营业支出" + "lag1_二、营业支出" - "lag2_二、营业支出" "二、营业支出",
-  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
-  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
-  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
-from profit_only_3
-where extract(month from "time")::integer <> 12
-union
-select
-  code, "time",
-  "一、营业收入" + "lag1_一、营业收入" - "lag2_一、营业收入" "一、营业收入",
-  "二、营业支出" + "lag1_二、营业支出" - "lag2_二、营业支出" "二、营业支出",
-  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
-  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
-  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
-from profit_only_6
-where extract(month from "time")::integer <> 12
-union
-select
-  code, "time",
-  "一、营业收入" + "lag1_一、营业收入" - "lag2_一、营业收入" "一、营业收入",
-  "二、营业支出" + "lag1_二、营业支出" - "lag2_二、营业支出" "二、营业支出",
-  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
-  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
-  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
-from profit_only_9
-where extract(month from "time")::integer <> 12
-union
-select
-  code, "time",
-  "一、营业收入", "二、营业支出",
-  "三、营业利润", "四、利润总额", "五、净利润" from securities_profit_sheet_insurance
-where
-  extract(year from "time") = single_year and
-  extract(month from "time")::integer = 12 and
-  code in (select distinct code from securities_profit_sheet_running_total)
-);
-end;
-$$ language plpgsql;
 
 
 drop function if exists securities_profit_sheet_general_running_total;
@@ -1432,6 +953,486 @@ where
   extract(year from "time") between start_year and end_year and
   extract(month from "time")::integer = 12 and
   code in (select fcwdcl_code from code_level2)
+);
+end;
+$$ language plpgsql;
+
+drop function if exists securities_profit_sheet_bank_running_total_single_year;
+create or replace function securities_profit_sheet_bank_running_total_single_year(single_year integer)
+returns table (psbrtsy_code varchar(6), psbrtsy_time date,
+               psbrtsy_营业收入 numeric(20,2), psbrtsy_营业支出 numeric(20,2),
+               psbrtsy_营业利润 numeric(20,2), psbrtsy_利润总额 numeric(20,2), psbrtsy_净利润 numeric(20,2)) as $$
+begin
+return query (
+with
+profit_only_3 as (
+  select code, "time",
+    lag(一、营业收入,2) over(partition by code order by "time") lag2_一、营业收入,
+    lag(一、营业收入,1) over(partition by code order by "time") lag1_一、营业收入,
+    一、营业收入,
+    lag(二、营业支出,2) over(partition by code order by "time") lag2_二、营业支出,
+    lag(二、营业支出,1) over(partition by code order by "time") lag1_二、营业支出,
+    二、营业支出,
+    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
+    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
+    三、营业利润,
+    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
+    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
+    四、利润总额,
+    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
+    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
+    五、净利润
+  from securities_profit_sheet_bank
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 3 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_profit_sheet_running_total)
+),
+profit_only_6 as (
+  select code, "time",
+    lag(一、营业收入,2) over(partition by code order by "time") lag2_一、营业收入,
+    lag(一、营业收入,1) over(partition by code order by "time") lag1_一、营业收入,
+    一、营业收入,
+    lag(二、营业支出,2) over(partition by code order by "time") lag2_二、营业支出,
+    lag(二、营业支出,1) over(partition by code order by "time") lag1_二、营业支出,
+    二、营业支出,
+    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
+    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
+    三、营业利润,
+    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
+    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
+    四、利润总额,
+    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
+    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
+    五、净利润
+  from securities_profit_sheet_bank
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 6 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_profit_sheet_running_total)
+),
+profit_only_9 as (
+  select code, "time",
+    lag(一、营业收入,2) over(partition by code order by "time") lag2_一、营业收入,
+    lag(一、营业收入,1) over(partition by code order by "time") lag1_一、营业收入,
+    一、营业收入,
+    lag(二、营业支出,2) over(partition by code order by "time") lag2_二、营业支出,
+    lag(二、营业支出,1) over(partition by code order by "time") lag1_二、营业支出,
+    二、营业支出,
+    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
+    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
+    三、营业利润,
+    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
+    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
+    四、利润总额,
+    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
+    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
+    五、净利润
+  from securities_profit_sheet_bank
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 9 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_profit_sheet_running_total)
+)
+
+select
+  code, "time",
+  "一、营业收入" + "lag1_一、营业收入" - "lag2_一、营业收入" "一、营业收入",
+  "二、营业支出" + "lag1_二、营业支出" - "lag2_二、营业支出" "二、营业支出",
+  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
+  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
+  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
+from profit_only_3
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  "一、营业收入" + "lag1_一、营业收入" - "lag2_一、营业收入" "一、营业收入",
+  "二、营业支出" + "lag1_二、营业支出" - "lag2_二、营业支出" "二、营业支出",
+  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
+  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
+  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
+from profit_only_6
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  "一、营业收入" + "lag1_一、营业收入" - "lag2_一、营业收入" "一、营业收入",
+  "二、营业支出" + "lag1_二、营业支出" - "lag2_二、营业支出" "二、营业支出",
+  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
+  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
+  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
+from profit_only_9
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  "一、营业收入", "二、营业支出",
+  "三、营业利润", "四、利润总额", "五、净利润" from securities_profit_sheet_bank
+where
+  extract(year from "time") = single_year and
+  extract(month from "time")::integer = 12 and
+  code in (select distinct code from securities_profit_sheet_running_total)
+);
+end;
+$$ language plpgsql;
+
+drop function if exists securities_profit_sheet_general_running_total_single_year;
+create or replace function securities_profit_sheet_general_running_total_single_year(single_year integer)
+returns table (psgrtsy_code varchar(6), psgrtsy_time date,
+               psgrtsy_营业收入 numeric(20,2), psgrtsy_营业支出 numeric(20,2),
+               psgrtsy_营业利润 numeric(20,2), psgrtsy_利润总额 numeric(20,2), psgrtsy_净利润 numeric(20,2)) as $$
+begin
+return query (
+with
+profit_only_3 as (
+  select code, "time",
+    lag(一、营业总收入,2) over(partition by code order by "time") lag2_一、营业总收入,
+    lag(一、营业总收入,1) over(partition by code order by "time") lag1_一、营业总收入,
+    一、营业总收入,
+    lag(二、营业总成本,2) over(partition by code order by "time") lag2_二、营业总成本,
+    lag(二、营业总成本,1) over(partition by code order by "time") lag1_二、营业总成本,
+    二、营业总成本,
+    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
+    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
+    三、营业利润,
+    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
+    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
+    四、利润总额,
+    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
+    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
+    五、净利润
+  from securities_profit_sheet_general
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 3 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_profit_sheet_running_total)
+),
+profit_only_6 as (
+  select code, "time",
+    lag(一、营业总收入,2) over(partition by code order by "time") lag2_一、营业总收入,
+    lag(一、营业总收入,1) over(partition by code order by "time") lag1_一、营业总收入,
+    一、营业总收入,
+    lag(二、营业总成本,2) over(partition by code order by "time") lag2_二、营业总成本,
+    lag(二、营业总成本,1) over(partition by code order by "time") lag1_二、营业总成本,
+    二、营业总成本,
+    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
+    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
+    三、营业利润,
+    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
+    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
+    四、利润总额,
+    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
+    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
+    五、净利润
+  from securities_profit_sheet_general
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 6 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_profit_sheet_running_total)
+),
+profit_only_9 as (
+  select code, "time",
+    lag(一、营业总收入,2) over(partition by code order by "time") lag2_一、营业总收入,
+    lag(一、营业总收入,1) over(partition by code order by "time") lag1_一、营业总收入,
+    一、营业总收入,
+    lag(二、营业总成本,2) over(partition by code order by "time") lag2_二、营业总成本,
+    lag(二、营业总成本,1) over(partition by code order by "time") lag1_二、营业总成本,
+    二、营业总成本,
+    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
+    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
+    三、营业利润,
+    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
+    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
+    四、利润总额,
+    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
+    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
+    五、净利润
+  from securities_profit_sheet_general
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 9 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_profit_sheet_running_total)
+)
+
+select
+  code, "time",
+  "一、营业总收入" + "lag1_一、营业总收入" - "lag2_一、营业总收入" "一、营业收入",
+  "二、营业总成本" + "lag1_二、营业总成本" - "lag2_二、营业总成本" "二、营业支出",
+  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
+  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
+  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
+from profit_only_3
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  "一、营业总收入" + "lag1_一、营业总收入" - "lag2_一、营业总收入" "一、营业收入",
+  "二、营业总成本" + "lag1_二、营业总成本" - "lag2_二、营业总成本" "二、营业支出",
+  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
+  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
+  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
+from profit_only_6
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  "一、营业总收入" + "lag1_一、营业总收入" - "lag2_一、营业总收入" "一、营业收入",
+  "二、营业总成本" + "lag1_二、营业总成本" - "lag2_二、营业总成本" "二、营业支出",
+  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
+  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
+  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
+from profit_only_9
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  "一、营业总收入" "一、营业收入", "二、营业总成本" "二、营业支出",
+  "三、营业利润", "四、利润总额", "五、净利润" from securities_profit_sheet_general
+where
+  extract(year from "time") = single_year and
+  extract(month from "time")::integer = 12 and
+  code in (select distinct code from securities_profit_sheet_running_total)
+);
+end;
+$$ language plpgsql;
+
+drop function if exists securities_profit_sheet_securities_running_total_single_year;
+create or replace function securities_profit_sheet_securities_running_total_single_year(single_year integer)
+returns table (pssrtsy_code varchar(6), pssrtsy_time date,
+               pssrtsy_营业收入 numeric(20,2), pssrtsy_营业支出 numeric(20,2),
+               pssrtsy_营业利润 numeric(20,2), pssrtsy_利润总额 numeric(20,2), pssrtsy_净利润 numeric(20,2)) as $$
+begin
+return query (
+with
+profit_only_3 as (
+  select code, "time",
+    lag(一、营业收入,2) over(partition by code order by "time") lag2_一、营业收入,
+    lag(一、营业收入,1) over(partition by code order by "time") lag1_一、营业收入,
+    一、营业收入,
+    lag(二、营业支出,2) over(partition by code order by "time") lag2_二、营业支出,
+    lag(二、营业支出,1) over(partition by code order by "time") lag1_二、营业支出,
+    二、营业支出,
+    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
+    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
+    三、营业利润,
+    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
+    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
+    四、利润总额,
+    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
+    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
+    五、净利润
+  from securities_profit_sheet_securities
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 3 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_profit_sheet_running_total)
+),
+profit_only_6 as (
+  select code, "time",
+    lag(一、营业收入,2) over(partition by code order by "time") lag2_一、营业收入,
+    lag(一、营业收入,1) over(partition by code order by "time") lag1_一、营业收入,
+    一、营业收入,
+    lag(二、营业支出,2) over(partition by code order by "time") lag2_二、营业支出,
+    lag(二、营业支出,1) over(partition by code order by "time") lag1_二、营业支出,
+    二、营业支出,
+    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
+    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
+    三、营业利润,
+    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
+    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
+    四、利润总额,
+    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
+    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
+    五、净利润
+  from securities_profit_sheet_securities
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 6 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_profit_sheet_running_total)
+),
+profit_only_9 as (
+  select code, "time",
+    lag(一、营业收入,2) over(partition by code order by "time") lag2_一、营业收入,
+    lag(一、营业收入,1) over(partition by code order by "time") lag1_一、营业收入,
+    一、营业收入,
+    lag(二、营业支出,2) over(partition by code order by "time") lag2_二、营业支出,
+    lag(二、营业支出,1) over(partition by code order by "time") lag1_二、营业支出,
+    二、营业支出,
+    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
+    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
+    三、营业利润,
+    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
+    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
+    四、利润总额,
+    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
+    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
+    五、净利润
+  from securities_profit_sheet_securities
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 9 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_profit_sheet_running_total)
+)
+
+select
+  code, "time",
+  "一、营业收入" + "lag1_一、营业收入" - "lag2_一、营业收入" "一、营业收入",
+  "二、营业支出" + "lag1_二、营业支出" - "lag2_二、营业支出" "二、营业支出",
+  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
+  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
+  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
+from profit_only_3
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  "一、营业收入" + "lag1_一、营业收入" - "lag2_一、营业收入" "一、营业收入",
+  "二、营业支出" + "lag1_二、营业支出" - "lag2_二、营业支出" "二、营业支出",
+  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
+  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
+  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
+from profit_only_6
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  "一、营业收入" + "lag1_一、营业收入" - "lag2_一、营业收入" "一、营业收入",
+  "二、营业支出" + "lag1_二、营业支出" - "lag2_二、营业支出" "二、营业支出",
+  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
+  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
+  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
+from profit_only_9
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  "一、营业收入", "二、营业支出",
+  "三、营业利润", "四、利润总额", "五、净利润" from securities_profit_sheet_securities
+where
+  extract(year from "time") = single_year and
+  extract(month from "time")::integer = 12 and
+  code in (select distinct code from securities_profit_sheet_running_total)
+);
+end;
+$$ language plpgsql;
+
+drop function if exists securities_profit_sheet_insurance_running_total_single_year;
+create or replace function securities_profit_sheet_insurance_running_total_single_year(single_year integer)
+returns table (psirtsy_code varchar(6), psirtsy_time date,
+               psirtsy_营业收入 numeric(20,2), psirtsy_营业支出 numeric(20,2),
+               psirtsy_营业利润 numeric(20,2), psirtsy_利润总额 numeric(20,2), psirtsy_净利润 numeric(20,2)) as $$
+begin
+return query (
+with
+profit_only_3 as (
+  select code, "time",
+    lag(一、营业收入,2) over(partition by code order by "time") lag2_一、营业收入,
+    lag(一、营业收入,1) over(partition by code order by "time") lag1_一、营业收入,
+    一、营业收入,
+    lag(二、营业支出,2) over(partition by code order by "time") lag2_二、营业支出,
+    lag(二、营业支出,1) over(partition by code order by "time") lag1_二、营业支出,
+    二、营业支出,
+    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
+    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
+    三、营业利润,
+    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
+    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
+    四、利润总额,
+    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
+    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
+    五、净利润
+  from securities_profit_sheet_insurance
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 3 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_profit_sheet_running_total)
+),
+profit_only_6 as (
+  select code, "time",
+    lag(一、营业收入,2) over(partition by code order by "time") lag2_一、营业收入,
+    lag(一、营业收入,1) over(partition by code order by "time") lag1_一、营业收入,
+    一、营业收入,
+    lag(二、营业支出,2) over(partition by code order by "time") lag2_二、营业支出,
+    lag(二、营业支出,1) over(partition by code order by "time") lag1_二、营业支出,
+    二、营业支出,
+    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
+    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
+    三、营业利润,
+    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
+    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
+    四、利润总额,
+    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
+    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
+    五、净利润
+  from securities_profit_sheet_insurance
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 6 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_profit_sheet_running_total)
+),
+profit_only_9 as (
+  select code, "time",
+    lag(一、营业收入,2) over(partition by code order by "time") lag2_一、营业收入,
+    lag(一、营业收入,1) over(partition by code order by "time") lag1_一、营业收入,
+    一、营业收入,
+    lag(二、营业支出,2) over(partition by code order by "time") lag2_二、营业支出,
+    lag(二、营业支出,1) over(partition by code order by "time") lag1_二、营业支出,
+    二、营业支出,
+    lag(三、营业利润,2) over(partition by code order by "time") lag2_三、营业利润,
+    lag(三、营业利润,1) over(partition by code order by "time") lag1_三、营业利润,
+    三、营业利润,
+    lag(四、利润总额,2) over(partition by code order by "time") lag2_四、利润总额,
+    lag(四、利润总额,1) over(partition by code order by "time") lag1_四、利润总额,
+    四、利润总额,
+    lag(五、净利润,2) over(partition by code order by "time") lag2_五、净利润,
+    lag(五、净利润,1) over(partition by code order by "time") lag1_五、净利润,
+    五、净利润
+  from securities_profit_sheet_insurance
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 9 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_profit_sheet_running_total)
+)
+
+select
+  code, "time",
+  "一、营业收入" + "lag1_一、营业收入" - "lag2_一、营业收入" "一、营业收入",
+  "二、营业支出" + "lag1_二、营业支出" - "lag2_二、营业支出" "二、营业支出",
+  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
+  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
+  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
+from profit_only_3
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  "一、营业收入" + "lag1_一、营业收入" - "lag2_一、营业收入" "一、营业收入",
+  "二、营业支出" + "lag1_二、营业支出" - "lag2_二、营业支出" "二、营业支出",
+  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
+  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
+  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
+from profit_only_6
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  "一、营业收入" + "lag1_一、营业收入" - "lag2_一、营业收入" "一、营业收入",
+  "二、营业支出" + "lag1_二、营业支出" - "lag2_二、营业支出" "二、营业支出",
+  "三、营业利润" + "lag1_三、营业利润" - "lag2_三、营业利润" "三、营业利润",
+  "四、利润总额" + "lag1_四、利润总额" - "lag2_四、利润总额" "四、利润总额",
+  "五、净利润" + "lag1_五、净利润" - "lag2_五、净利润" "五、净利润"
+from profit_only_9
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  "一、营业收入", "二、营业支出",
+  "三、营业利润", "四、利润总额", "五、净利润" from securities_profit_sheet_insurance
+where
+  extract(year from "time") = single_year and
+  extract(month from "time")::integer = 12 and
+  code in (select distinct code from securities_profit_sheet_running_total)
 );
 end;
 $$ language plpgsql;
