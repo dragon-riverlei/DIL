@@ -2057,6 +2057,450 @@ where
 end;
 $$ language plpgsql;
 
+drop function if exists securities_cash_flow_sheet_bank_running_total_single_year;
+create or replace function securities_cash_flow_sheet_bank_running_total_single_year(single_year integer)
+returns table (cfsbrtsy_code varchar(6), cfsbrtsy_time date,
+               cfsbrtsy_经营活动产生的现金流量净额 numeric(20,2), cfsbrtsy_投资活动产生的现金流量净额 numeric(20,2),
+               cfsbrtsy_筹资活动产生的现金流量净额 numeric(20,2), cfsbrtsy_现金及现金等价物净增加额 numeric(20,2)) as $$
+begin
+return query (
+with
+profit_only_3 as (
+  select code, "time",
+    lag(经营活动产生的现金流量净额,2) over(partition by code order by "time") lag2_经营活动产生的现金流量净额,
+    lag(经营活动产生的现金流量净额,1) over(partition by code order by "time") lag1_经营活动产生的现金流量净额,
+    经营活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_投资活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_投资活动产生的现金流量净额,
+    投资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_筹资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_筹资活动产生的现金流量净额,
+    筹资活动产生的现金流量净额,
+    lag(五、现金及现金等价物净增加额,2) over(partition by code order by "time") lag2_五、现金及现金等价物净增加额,
+    lag(五、现金及现金等价物净增加额,1) over(partition by code order by "time") lag1_五、现金及现金等价物净增加额,
+    五、现金及现金等价物净增加额
+  from securities_cash_flow_sheet_bank
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 3 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_cash_flow_sheet_running_total)
+),
+profit_only_6 as (
+  select code, "time",
+    lag(经营活动产生的现金流量净额,2) over(partition by code order by "time") lag2_经营活动产生的现金流量净额,
+    lag(经营活动产生的现金流量净额,1) over(partition by code order by "time") lag1_经营活动产生的现金流量净额,
+    经营活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_投资活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_投资活动产生的现金流量净额,
+    投资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_筹资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_筹资活动产生的现金流量净额,
+    筹资活动产生的现金流量净额,
+    lag(五、现金及现金等价物净增加额,2) over(partition by code order by "time") lag2_五、现金及现金等价物净增加额,
+    lag(五、现金及现金等价物净增加额,1) over(partition by code order by "time") lag1_五、现金及现金等价物净增加额,
+    五、现金及现金等价物净增加额
+  from securities_cash_flow_sheet_bank
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 6 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_cash_flow_sheet_running_total)
+),
+profit_only_9 as (
+  select code, "time",
+    lag(经营活动产生的现金流量净额,2) over(partition by code order by "time") lag2_经营活动产生的现金流量净额,
+    lag(经营活动产生的现金流量净额,1) over(partition by code order by "time") lag1_经营活动产生的现金流量净额,
+    经营活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_投资活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_投资活动产生的现金流量净额,
+    投资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_筹资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_筹资活动产生的现金流量净额,
+    筹资活动产生的现金流量净额,
+    lag(五、现金及现金等价物净增加额,2) over(partition by code order by "time") lag2_五、现金及现金等价物净增加额,
+    lag(五、现金及现金等价物净增加额,1) over(partition by code order by "time") lag1_五、现金及现金等价物净增加额,
+    五、现金及现金等价物净增加额
+  from securities_cash_flow_sheet_bank
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 9 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_cash_flow_sheet_running_total)
+)
+
+select
+  code, "time",
+  经营活动产生的现金流量净额 + lag1_经营活动产生的现金流量净额 - lag2_经营活动产生的现金流量净额 经营活动产生的现金流量净额,
+  投资活动产生的现金流量净额 + lag1_投资活动产生的现金流量净额 - lag2_投资活动产生的现金流量净额 投资活动产生的现金流量净额,
+  筹资活动产生的现金流量净额 + lag1_筹资活动产生的现金流量净额 - lag2_筹资活动产生的现金流量净额 筹资活动产生的现金流量净额,
+  五、现金及现金等价物净增加额 + lag1_五、现金及现金等价物净增加额 - lag2_五、现金及现金等价物净增加额 现金及现金等价物净增加额
+from profit_only_3
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  经营活动产生的现金流量净额 + lag1_经营活动产生的现金流量净额 - lag2_经营活动产生的现金流量净额 经营活动产生的现金流量净额,
+  投资活动产生的现金流量净额 + lag1_投资活动产生的现金流量净额 - lag2_投资活动产生的现金流量净额 投资活动产生的现金流量净额,
+  筹资活动产生的现金流量净额 + lag1_筹资活动产生的现金流量净额 - lag2_筹资活动产生的现金流量净额 筹资活动产生的现金流量净额,
+  五、现金及现金等价物净增加额 + lag1_五、现金及现金等价物净增加额 - lag2_五、现金及现金等价物净增加额 现金及现金等价物净增加额
+from profit_only_6
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  经营活动产生的现金流量净额 + lag1_经营活动产生的现金流量净额 - lag2_经营活动产生的现金流量净额 经营活动产生的现金流量净额,
+  投资活动产生的现金流量净额 + lag1_投资活动产生的现金流量净额 - lag2_投资活动产生的现金流量净额 投资活动产生的现金流量净额,
+  筹资活动产生的现金流量净额 + lag1_筹资活动产生的现金流量净额 - lag2_筹资活动产生的现金流量净额 筹资活动产生的现金流量净额,
+  五、现金及现金等价物净增加额 + lag1_五、现金及现金等价物净增加额 - lag2_五、现金及现金等价物净增加额 现金及现金等价物净增加额
+from profit_only_9
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  经营活动产生的现金流量净额,
+  投资活动产生的现金流量净额,
+  筹资活动产生的现金流量净额,
+  五、现金及现金等价物净增加额 现金及现金等价物净增加额
+from securities_cash_flow_sheet_bank
+where
+  extract(year from "time") = single_year and
+  extract(month from "time")::integer = 12 and
+  code in (select distinct code from securities_cash_flow_sheet_running_total)
+);
+end;
+$$ language plpgsql;
+
+drop function if exists securities_cash_flow_sheet_general_running_total_single_year;
+create or replace function securities_cash_flow_sheet_general_running_total_single_year(single_year integer)
+returns table (cfsgrtsy_code varchar(6), cfsgrtsy_time date,
+               cfsgrtsy_经营活动产生的现金流量净额 numeric(20,2), cfsgrtsy_投资活动产生的现金流量净额 numeric(20,2),
+               cfsgrtsy_筹资活动产生的现金流量净额 numeric(20,2), cfsgrtsy_现金及现金等价物净增加额 numeric(20,2)) as $$
+begin
+return query (
+with
+profit_only_3 as (
+  select code, "time",
+    lag(经营活动产生的现金流量净额,2) over(partition by code order by "time") lag2_经营活动产生的现金流量净额,
+    lag(经营活动产生的现金流量净额,1) over(partition by code order by "time") lag1_经营活动产生的现金流量净额,
+    经营活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_投资活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_投资活动产生的现金流量净额,
+    投资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_筹资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_筹资活动产生的现金流量净额,
+    筹资活动产生的现金流量净额,
+    lag(五、现金及现金等价物净增加额,2) over(partition by code order by "time") lag2_五、现金及现金等价物净增加额,
+    lag(五、现金及现金等价物净增加额,1) over(partition by code order by "time") lag1_五、现金及现金等价物净增加额,
+    五、现金及现金等价物净增加额
+  from securities_cash_flow_sheet_general
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 3 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_cash_flow_sheet_running_total)
+),
+profit_only_6 as (
+  select code, "time",
+    lag(经营活动产生的现金流量净额,2) over(partition by code order by "time") lag2_经营活动产生的现金流量净额,
+    lag(经营活动产生的现金流量净额,1) over(partition by code order by "time") lag1_经营活动产生的现金流量净额,
+    经营活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_投资活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_投资活动产生的现金流量净额,
+    投资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_筹资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_筹资活动产生的现金流量净额,
+    筹资活动产生的现金流量净额,
+    lag(五、现金及现金等价物净增加额,2) over(partition by code order by "time") lag2_五、现金及现金等价物净增加额,
+    lag(五、现金及现金等价物净增加额,1) over(partition by code order by "time") lag1_五、现金及现金等价物净增加额,
+    五、现金及现金等价物净增加额
+  from securities_cash_flow_sheet_general
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 6 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_cash_flow_sheet_running_total)
+),
+profit_only_9 as (
+  select code, "time",
+    lag(经营活动产生的现金流量净额,2) over(partition by code order by "time") lag2_经营活动产生的现金流量净额,
+    lag(经营活动产生的现金流量净额,1) over(partition by code order by "time") lag1_经营活动产生的现金流量净额,
+    经营活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_投资活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_投资活动产生的现金流量净额,
+    投资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_筹资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_筹资活动产生的现金流量净额,
+    筹资活动产生的现金流量净额,
+    lag(五、现金及现金等价物净增加额,2) over(partition by code order by "time") lag2_五、现金及现金等价物净增加额,
+    lag(五、现金及现金等价物净增加额,1) over(partition by code order by "time") lag1_五、现金及现金等价物净增加额,
+    五、现金及现金等价物净增加额
+  from securities_cash_flow_sheet_general
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 9 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_cash_flow_sheet_running_total)
+)
+
+select
+  code, "time",
+  经营活动产生的现金流量净额 + lag1_经营活动产生的现金流量净额 - lag2_经营活动产生的现金流量净额 经营活动产生的现金流量净额,
+  投资活动产生的现金流量净额 + lag1_投资活动产生的现金流量净额 - lag2_投资活动产生的现金流量净额 投资活动产生的现金流量净额,
+  筹资活动产生的现金流量净额 + lag1_筹资活动产生的现金流量净额 - lag2_筹资活动产生的现金流量净额 筹资活动产生的现金流量净额,
+  五、现金及现金等价物净增加额 + lag1_五、现金及现金等价物净增加额 - lag2_五、现金及现金等价物净增加额 现金及现金等价物净增加额
+from profit_only_3
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  经营活动产生的现金流量净额 + lag1_经营活动产生的现金流量净额 - lag2_经营活动产生的现金流量净额 经营活动产生的现金流量净额,
+  投资活动产生的现金流量净额 + lag1_投资活动产生的现金流量净额 - lag2_投资活动产生的现金流量净额 投资活动产生的现金流量净额,
+  筹资活动产生的现金流量净额 + lag1_筹资活动产生的现金流量净额 - lag2_筹资活动产生的现金流量净额 筹资活动产生的现金流量净额,
+  五、现金及现金等价物净增加额 + lag1_五、现金及现金等价物净增加额 - lag2_五、现金及现金等价物净增加额 现金及现金等价物净增加额
+from profit_only_6
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  经营活动产生的现金流量净额 + lag1_经营活动产生的现金流量净额 - lag2_经营活动产生的现金流量净额 经营活动产生的现金流量净额,
+  投资活动产生的现金流量净额 + lag1_投资活动产生的现金流量净额 - lag2_投资活动产生的现金流量净额 投资活动产生的现金流量净额,
+  筹资活动产生的现金流量净额 + lag1_筹资活动产生的现金流量净额 - lag2_筹资活动产生的现金流量净额 筹资活动产生的现金流量净额,
+  五、现金及现金等价物净增加额 + lag1_五、现金及现金等价物净增加额 - lag2_五、现金及现金等价物净增加额 现金及现金等价物净增加额
+from profit_only_9
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  经营活动产生的现金流量净额,
+  投资活动产生的现金流量净额,
+  筹资活动产生的现金流量净额,
+  五、现金及现金等价物净增加额 现金及现金等价物净增加额
+from securities_cash_flow_sheet_general
+where
+  extract(year from "time") = single_year and
+  extract(month from "time")::integer = 12 and
+  code in (select distinct code from securities_cash_flow_sheet_running_total)
+);
+end;
+$$ language plpgsql;
+
+drop function if exists securities_cash_flow_sheet_securities_running_total_single_year;
+create or replace function securities_cash_flow_sheet_securities_running_total_single_year(single_year integer)
+returns table (cfssrtsy_code varchar(6), cfssrtsy_time date,
+               cfssrtsy_经营活动产生的现金流量净额 numeric(20,2), cfssrtsy_投资活动产生的现金流量净额 numeric(20,2),
+               cfssrtsy_筹资活动产生的现金流量净额 numeric(20,2), cfssrtsy_现金及现金等价物净增加额 numeric(20,2)) as $$
+begin
+return query (
+with
+profit_only_3 as (
+  select code, "time",
+    lag(经营活动产生的现金流量净额,2) over(partition by code order by "time") lag2_经营活动产生的现金流量净额,
+    lag(经营活动产生的现金流量净额,1) over(partition by code order by "time") lag1_经营活动产生的现金流量净额,
+    经营活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_投资活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_投资活动产生的现金流量净额,
+    投资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_筹资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_筹资活动产生的现金流量净额,
+    筹资活动产生的现金流量净额,
+    lag(五、现金及现金等价物净增加额,2) over(partition by code order by "time") lag2_五、现金及现金等价物净增加额,
+    lag(五、现金及现金等价物净增加额,1) over(partition by code order by "time") lag1_五、现金及现金等价物净增加额,
+    五、现金及现金等价物净增加额
+  from securities_cash_flow_sheet_securities
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 3 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_cash_flow_sheet_running_total)
+),
+profit_only_6 as (
+  select code, "time",
+    lag(经营活动产生的现金流量净额,2) over(partition by code order by "time") lag2_经营活动产生的现金流量净额,
+    lag(经营活动产生的现金流量净额,1) over(partition by code order by "time") lag1_经营活动产生的现金流量净额,
+    经营活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_投资活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_投资活动产生的现金流量净额,
+    投资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_筹资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_筹资活动产生的现金流量净额,
+    筹资活动产生的现金流量净额,
+    lag(五、现金及现金等价物净增加额,2) over(partition by code order by "time") lag2_五、现金及现金等价物净增加额,
+    lag(五、现金及现金等价物净增加额,1) over(partition by code order by "time") lag1_五、现金及现金等价物净增加额,
+    五、现金及现金等价物净增加额
+  from securities_cash_flow_sheet_securities
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 6 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_cash_flow_sheet_running_total)
+),
+profit_only_9 as (
+  select code, "time",
+    lag(经营活动产生的现金流量净额,2) over(partition by code order by "time") lag2_经营活动产生的现金流量净额,
+    lag(经营活动产生的现金流量净额,1) over(partition by code order by "time") lag1_经营活动产生的现金流量净额,
+    经营活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_投资活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_投资活动产生的现金流量净额,
+    投资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_筹资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_筹资活动产生的现金流量净额,
+    筹资活动产生的现金流量净额,
+    lag(五、现金及现金等价物净增加额,2) over(partition by code order by "time") lag2_五、现金及现金等价物净增加额,
+    lag(五、现金及现金等价物净增加额,1) over(partition by code order by "time") lag1_五、现金及现金等价物净增加额,
+    五、现金及现金等价物净增加额
+  from securities_cash_flow_sheet_securities
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 9 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_cash_flow_sheet_running_total)
+)
+
+select
+  code, "time",
+  经营活动产生的现金流量净额 + lag1_经营活动产生的现金流量净额 - lag2_经营活动产生的现金流量净额 经营活动产生的现金流量净额,
+  投资活动产生的现金流量净额 + lag1_投资活动产生的现金流量净额 - lag2_投资活动产生的现金流量净额 投资活动产生的现金流量净额,
+  筹资活动产生的现金流量净额 + lag1_筹资活动产生的现金流量净额 - lag2_筹资活动产生的现金流量净额 筹资活动产生的现金流量净额,
+  五、现金及现金等价物净增加额 + lag1_五、现金及现金等价物净增加额 - lag2_五、现金及现金等价物净增加额 现金及现金等价物净增加额
+from profit_only_3
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  经营活动产生的现金流量净额 + lag1_经营活动产生的现金流量净额 - lag2_经营活动产生的现金流量净额 经营活动产生的现金流量净额,
+  投资活动产生的现金流量净额 + lag1_投资活动产生的现金流量净额 - lag2_投资活动产生的现金流量净额 投资活动产生的现金流量净额,
+  筹资活动产生的现金流量净额 + lag1_筹资活动产生的现金流量净额 - lag2_筹资活动产生的现金流量净额 筹资活动产生的现金流量净额,
+  五、现金及现金等价物净增加额 + lag1_五、现金及现金等价物净增加额 - lag2_五、现金及现金等价物净增加额 现金及现金等价物净增加额
+from profit_only_6
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  经营活动产生的现金流量净额 + lag1_经营活动产生的现金流量净额 - lag2_经营活动产生的现金流量净额 经营活动产生的现金流量净额,
+  投资活动产生的现金流量净额 + lag1_投资活动产生的现金流量净额 - lag2_投资活动产生的现金流量净额 投资活动产生的现金流量净额,
+  筹资活动产生的现金流量净额 + lag1_筹资活动产生的现金流量净额 - lag2_筹资活动产生的现金流量净额 筹资活动产生的现金流量净额,
+  五、现金及现金等价物净增加额 + lag1_五、现金及现金等价物净增加额 - lag2_五、现金及现金等价物净增加额 现金及现金等价物净增加额
+from profit_only_9
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  经营活动产生的现金流量净额,
+  投资活动产生的现金流量净额,
+  筹资活动产生的现金流量净额,
+  五、现金及现金等价物净增加额 现金及现金等价物净增加额
+from securities_cash_flow_sheet_securities
+where
+  extract(year from "time") = single_year and
+  extract(month from "time")::integer = 12 and
+  code in (select distinct code from securities_cash_flow_sheet_running_total)
+);
+end;
+$$ language plpgsql;
+
+drop function if exists securities_cash_flow_sheet_insurance_running_total_single_year;
+create or replace function securities_cash_flow_sheet_insurance_running_total_single_year(single_year integer)
+returns table (cfsirtsy_code varchar(6), cfsirtsy_time date,
+               cfsirtsy_经营活动产生的现金流量净额 numeric(20,2), cfsirtsy_投资活动产生的现金流量净额 numeric(20,2),
+               cfsirtsy_筹资活动产生的现金流量净额 numeric(20,2), cfsirtsy_现金及现金等价物净增加额 numeric(20,2)) as $$
+begin
+return query (
+with
+profit_only_3 as (
+  select code, "time",
+    lag(经营活动产生的现金流量净额,2) over(partition by code order by "time") lag2_经营活动产生的现金流量净额,
+    lag(经营活动产生的现金流量净额,1) over(partition by code order by "time") lag1_经营活动产生的现金流量净额,
+    经营活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_投资活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_投资活动产生的现金流量净额,
+    投资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_筹资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_筹资活动产生的现金流量净额,
+    筹资活动产生的现金流量净额,
+    lag(五、现金及现金等价物净增加额,2) over(partition by code order by "time") lag2_五、现金及现金等价物净增加额,
+    lag(五、现金及现金等价物净增加额,1) over(partition by code order by "time") lag1_五、现金及现金等价物净增加额,
+    五、现金及现金等价物净增加额
+  from securities_cash_flow_sheet_insurance
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 3 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_cash_flow_sheet_running_total)
+),
+profit_only_6 as (
+  select code, "time",
+    lag(经营活动产生的现金流量净额,2) over(partition by code order by "time") lag2_经营活动产生的现金流量净额,
+    lag(经营活动产生的现金流量净额,1) over(partition by code order by "time") lag1_经营活动产生的现金流量净额,
+    经营活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_投资活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_投资活动产生的现金流量净额,
+    投资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_筹资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_筹资活动产生的现金流量净额,
+    筹资活动产生的现金流量净额,
+    lag(五、现金及现金等价物净增加额,2) over(partition by code order by "time") lag2_五、现金及现金等价物净增加额,
+    lag(五、现金及现金等价物净增加额,1) over(partition by code order by "time") lag1_五、现金及现金等价物净增加额,
+    五、现金及现金等价物净增加额
+  from securities_cash_flow_sheet_insurance
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 6 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_cash_flow_sheet_running_total)
+),
+profit_only_9 as (
+  select code, "time",
+    lag(经营活动产生的现金流量净额,2) over(partition by code order by "time") lag2_经营活动产生的现金流量净额,
+    lag(经营活动产生的现金流量净额,1) over(partition by code order by "time") lag1_经营活动产生的现金流量净额,
+    经营活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_投资活动产生的现金流量净额,
+    lag(投资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_投资活动产生的现金流量净额,
+    投资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,2) over(partition by code order by "time") lag2_筹资活动产生的现金流量净额,
+    lag(筹资活动产生的现金流量净额,1) over(partition by code order by "time") lag1_筹资活动产生的现金流量净额,
+    筹资活动产生的现金流量净额,
+    lag(五、现金及现金等价物净增加额,2) over(partition by code order by "time") lag2_五、现金及现金等价物净增加额,
+    lag(五、现金及现金等价物净增加额,1) over(partition by code order by "time") lag1_五、现金及现金等价物净增加额,
+    五、现金及现金等价物净增加额
+  from securities_cash_flow_sheet_insurance
+  where
+    (extract(year from "time") = single_year or extract(year from "time") = single_year - 1 ) and
+    (extract(month from "time")::integer = 9 or extract(month from "time")::integer = 12) and
+    code in (select distinct code from securities_cash_flow_sheet_running_total)
+)
+
+select
+  code, "time",
+  经营活动产生的现金流量净额 + lag1_经营活动产生的现金流量净额 - lag2_经营活动产生的现金流量净额 经营活动产生的现金流量净额,
+  投资活动产生的现金流量净额 + lag1_投资活动产生的现金流量净额 - lag2_投资活动产生的现金流量净额 投资活动产生的现金流量净额,
+  筹资活动产生的现金流量净额 + lag1_筹资活动产生的现金流量净额 - lag2_筹资活动产生的现金流量净额 筹资活动产生的现金流量净额,
+  五、现金及现金等价物净增加额 + lag1_五、现金及现金等价物净增加额 - lag2_五、现金及现金等价物净增加额 现金及现金等价物净增加额
+from profit_only_3
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  经营活动产生的现金流量净额 + lag1_经营活动产生的现金流量净额 - lag2_经营活动产生的现金流量净额 经营活动产生的现金流量净额,
+  投资活动产生的现金流量净额 + lag1_投资活动产生的现金流量净额 - lag2_投资活动产生的现金流量净额 投资活动产生的现金流量净额,
+  筹资活动产生的现金流量净额 + lag1_筹资活动产生的现金流量净额 - lag2_筹资活动产生的现金流量净额 筹资活动产生的现金流量净额,
+  五、现金及现金等价物净增加额 + lag1_五、现金及现金等价物净增加额 - lag2_五、现金及现金等价物净增加额 现金及现金等价物净增加额
+from profit_only_6
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  经营活动产生的现金流量净额 + lag1_经营活动产生的现金流量净额 - lag2_经营活动产生的现金流量净额 经营活动产生的现金流量净额,
+  投资活动产生的现金流量净额 + lag1_投资活动产生的现金流量净额 - lag2_投资活动产生的现金流量净额 投资活动产生的现金流量净额,
+  筹资活动产生的现金流量净额 + lag1_筹资活动产生的现金流量净额 - lag2_筹资活动产生的现金流量净额 筹资活动产生的现金流量净额,
+  五、现金及现金等价物净增加额 + lag1_五、现金及现金等价物净增加额 - lag2_五、现金及现金等价物净增加额 现金及现金等价物净增加额
+from profit_only_9
+where extract(month from "time")::integer <> 12
+union
+select
+  code, "time",
+  经营活动产生的现金流量净额,
+  投资活动产生的现金流量净额,
+  筹资活动产生的现金流量净额,
+  五、现金及现金等价物净增加额 现金及现金等价物净增加额
+from securities_cash_flow_sheet_insurance
+where
+  extract(year from "time") = single_year and
+  extract(month from "time")::integer = 12 and
+  code in (select distinct code from securities_cash_flow_sheet_running_total)
+);
+end;
+$$ language plpgsql;
+
 -- transaction_soldout_subtotal:
 -- 已结实盈(清仓个股)，曾经持有，目前清仓的证券
 -- 要分期初已持有和期初未持有
@@ -2332,6 +2776,45 @@ select
   cfsirt_筹资活动产生的现金流量净额, cfsirt_现金及现金等价物净增加额
 from securities_cash_flow_sheet_insurance_running_total(start_year, end_year)
 where cfsirt_经营活动产生的现金流量净额 is not null
+on conflict do nothing;
+create index securities_cash_flow_sheet_running_total_idx_year on securities_cash_flow_sheet_running_total ((extract(year from time)));
+create index securities_cash_flow_sheet_running_total_idx_month on securities_cash_flow_sheet_running_total ((extract(month from time)));
+end;
+$$ LANGUAGE plpgsql;
+
+drop function if exists insert_securities_cash_flow_sheet_running_total_single_year;
+create or replace function insert_securities_cash_flow_sheet_running_total_single_year(single_year integer) returns void as $$
+begin
+drop index if exists  securities_cash_flow_sheet_running_total_idx_year;
+drop index if exists  securities_cash_flow_sheet_running_total_idx_month;
+insert into securities_cash_flow_sheet_running_total
+select
+  cfsbrtsy_code code, cfsbrtsy_time "time",
+  cfsbrtsy_经营活动产生的现金流量净额, cfsbrtsy_投资活动产生的现金流量净额,
+  cfsbrtsy_筹资活动产生的现金流量净额, cfsbrtsy_现金及现金等价物净增加额
+from securities_cash_flow_sheet_bank_running_total_single_year(single_year)
+where cfsbrtsy_经营活动产生的现金流量净额 is not null
+union
+select
+  cfsgrtsy_code code, cfsgrtsy_time "time",
+  cfsgrtsy_经营活动产生的现金流量净额, cfsgrtsy_投资活动产生的现金流量净额,
+  cfsgrtsy_筹资活动产生的现金流量净额, cfsgrtsy_现金及现金等价物净增加额
+from securities_cash_flow_sheet_general_running_total_single_year(single_year)
+where cfsgrtsy_经营活动产生的现金流量净额 is not null
+union
+select
+  cfssrtsy_code code, cfssrtsy_time "time",
+  cfssrtsy_经营活动产生的现金流量净额, cfssrtsy_投资活动产生的现金流量净额,
+  cfssrtsy_筹资活动产生的现金流量净额, cfssrtsy_现金及现金等价物净增加额
+from securities_cash_flow_sheet_securities_running_total_single_year(single_year)
+where cfssrtsy_经营活动产生的现金流量净额 is not null
+union
+select
+  cfsirtsy_code code, cfsirtsy_time "time",
+  cfsirtsy_经营活动产生的现金流量净额, cfsirtsy_投资活动产生的现金流量净额,
+  cfsirtsy_筹资活动产生的现金流量净额, cfsirtsy_现金及现金等价物净增加额
+from securities_cash_flow_sheet_insurance_running_total_single_year(single_year)
+where cfsirtsy_经营活动产生的现金流量净额 is not null
 on conflict do nothing;
 create index securities_cash_flow_sheet_running_total_idx_year on securities_cash_flow_sheet_running_total ((extract(year from time)));
 create index securities_cash_flow_sheet_running_total_idx_month on securities_cash_flow_sheet_running_total ((extract(month from time)));
