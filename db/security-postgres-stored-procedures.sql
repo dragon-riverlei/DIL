@@ -1647,32 +1647,32 @@ drop index if exists  securities_profit_sheet_running_total_idx_year;
 drop index if exists  securities_profit_sheet_running_total_idx_month;
 insert into securities_profit_sheet_running_total
 select
-  psbrt_code code, psbrt_time "time",
-  psbrt_营业收入 营业收入, psbrt_营业支出 营业支出,
-  psbrt_营业利润 营业利润, psbrt_利润总额 利润总额, psbrt_净利润 净利润
+  psbrtsy_code code, psbrtsy_time "time",
+  psbrtsy_营业收入 营业收入, psbrtsy_营业支出 营业支出,
+  psbrtsy_营业利润 营业利润, psbrtsy_利润总额 利润总额, psbrtsy_净利润 净利润
 from securities_profit_sheet_bank_running_total_single_year(single_year)
-where psbrt_营业收入 is not null
+where psbrtsy_营业收入 is not null
 union
 select
-  psgrt_code code, psgrt_time "time",
-  psgrt_营业收入 营业收入, psgrt_营业支出 营业支出,
-  psgrt_营业利润 营业利润, psgrt_利润总额 利润总额, psgrt_净利润 净利润
+  psgrtsy_code code, psgrtsy_time "time",
+  psgrtsy_营业收入 营业收入, psgrtsy_营业支出 营业支出,
+  psgrtsy_营业利润 营业利润, psgrtsy_利润总额 利润总额, psgrtsy_净利润 净利润
 from securities_profit_sheet_general_running_total_single_year(single_year)
-where psgrt_营业收入 is not null
+where psgrtsy_营业收入 is not null
 union
 select
-  pssrt_code code, pssrt_time "time",
-  pssrt_营业收入 营业收入, pssrt_营业支出 营业支出,
-  pssrt_营业利润 营业利润, pssrt_利润总额 利润总额, pssrt_净利润 净利润
+  pssrtsy_code code, pssrtsy_time "time",
+  pssrtsy_营业收入 营业收入, pssrtsy_营业支出 营业支出,
+  pssrtsy_营业利润 营业利润, pssrtsy_利润总额 利润总额, pssrtsy_净利润 净利润
 from securities_profit_sheet_securities_running_total_single_year(single_year)
-where pssrt_营业收入 is not null
+where pssrtsy_营业收入 is not null
 union
 select
-  psirt_code code, psirt_time "time",
-  psirt_营业收入 营业收入, psirt_营业支出 营业支出,
-  psirt_营业利润 营业利润, psirt_利润总额 利润总额, psirt_净利润 净利润
+  psirtsy_code code, psirtsy_time "time",
+  psirtsy_营业收入 营业收入, psirtsy_营业支出 营业支出,
+  psirtsy_营业利润 营业利润, psirtsy_利润总额 利润总额, psirtsy_净利润 净利润
 from securities_profit_sheet_insurance_running_total_single_year(single_year)
-where psirt_营业收入 is not null
+where psirtsy_营业收入 is not null
 on conflict do nothing;
 create index securities_profit_sheet_running_total_idx_year on securities_profit_sheet_running_total ((extract(year from time)));
 create index securities_profit_sheet_running_total_idx_month on securities_profit_sheet_running_total ((extract(month from time)));
