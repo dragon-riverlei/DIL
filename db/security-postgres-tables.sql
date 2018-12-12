@@ -904,23 +904,10 @@ create table if not exists securities_kpi (
   -- MFRation28 numeric(10,4), -- 基本每股收益（元）
   -- MFRation18 numeric(10,4), -- 每股净资产（元）
   -- MFRation20 numeric(10,4), -- 每股经营活动产生的现金流量净额（元）
-  营业利润_营业总收入 numeric(10,4), -- 营业利润/营业总收入
-  净利润_营业总收入 numeric(10,4), -- 净利润/营业总收入
-  净利润_利润总额 numeric(10,4), -- 净利润/利润总额
-  净利润_股东权益合计 numeric(10,4), -- 五、净资产收益率（全面摊薄）：净利润/股东权益合计，均为期末值
-  每股收益 numeric(10,2),
-  -- MFRation10 numeric(20,4), -- 主营业务收入（万元）
-  -- MFRation4  numeric(20,4), -- 主营业务利润（万元）
-  -- MFRation5  numeric(20,4), -- 营业利润（万元）
-  -- MFRation6  numeric(20,4), -- 投资收益（万元）
-  -- MFRation7  numeric(20,4), -- 营业外收支净额（万元）
-  -- MFRation1  numeric(20,4), -- 利润总额（万元）
-  -- MFRation2  numeric(20,4), -- 净利润（万元）
-  -- MFRation3  numeric(20,4), -- 净利润(扣除非经常性损益后)（万元）
-  -- MFRation8  numeric(20,4), -- 经营活动产生的现金流量净额（万元）
-  -- MFRation9  numeric(20,4), -- 现金及现金等价物净增加额（万元）
-  -- MFRation12  numeric(20,4),-- 总资产（万元）
-  -- MFRation13  numeric(20,4), -- 股东权益不含少数股东权益（万元）
+  营业利润vs营业收入 numeric(10,4), -- 营业利润/营业收入
+  净利润vs营业收入 numeric(10,4), -- 净利润/营业收入
+  净利润vs利润总额 numeric(10,4), -- 净利润/利润总额
+  净利润vs股东权益合计 numeric(10,4) -- 五、净资产收益率（全面摊薄）：净利润/股东权益合计，均为期末值
   primary key (code, time)
 );
 
