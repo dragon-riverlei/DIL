@@ -332,6 +332,102 @@ where extract(year from psrt."time") between start_year and end_year;
 end;
 $$ language plpgsql;
 
+drop function if exists securities_kpis_2;
+create or replace function securities_kpis_2(start_year integer, end_year integer)
+returns table (code varchar(6), "time" date,
+               营业收入同比 numeric(10,4),
+               营业利润同比 numeric(10,4),
+               净利润同比 numeric(10,4),
+               营业收入环比 numeric(10,4),
+               营业利润环比 numeric(10,4),
+               净利润环比 numeric(10,4),
+               经营活动产生的现金流量净额同比 numeric(10,4),
+               投资活动产生的现金流量净额同比 numeric(10,4),
+               筹资活动产生的现金流量净额同比 numeric(10,4),
+               现金及现金等价物净增加额同比 numeric(10,4),
+               经营活动产生的现金流量净额环比 numeric(10,4),
+               投资活动产生的现金流量净额环比 numeric(10,4),
+               筹资活动产生的现金流量净额环比 numeric(10,4),
+               现金及现金等价物净增加额环比 numeric(10,4)) as $$
+begin
+return query
+select
+  psrt1.code, psrt1."time",
+  case when psrt2.营业收入 is not null and psrt2.营业收入 <> 0
+       then round((psrt1.营业收入 - psrt2.营业收入) / psrt2.营业收入, 2)
+       else null end 营业收入同比,
+  case when psrt2.营业利润 is not null and psrt2.营业利润 <> 0
+       then round((psrt1.营业利润 - psrt2.营业利润) / psrt2.营业利润, 2)
+       else null end 营业利润同比,
+  case when psrt2.净利润 is not null and psrt2.净利润 <> 0
+       then round((psrt1.净利润 - psrt2.净利润) / psrt2.净利润, 2)
+       else null end 净利润同比,
+
+  case when psrt3.营业收入 is not null and psrt3.营业收入 <> 0
+       then round((psrt1.营业收入 - psrt3.营业收入) / psrt3.营业收入, 2)
+       else null end 营业收入环比,
+  case when psrt3.营业利润 is not null and psrt3.营业利润 <> 0
+      then round((psrt1.营业利润 - psrt3.营业利润) / psrt3.营业利润, 2)
+       else null end 营业利润环比,
+  case when psrt3.净利润 is not null and psrt3.净利润 <> 0
+       then round((psrt1.净利润 - psrt3.净利润) / psrt3.净利润, 2)
+       else null end 净利润环比,
+
+  case when psrt5.经营活动产生的现金流量净额 is not null and psrt5.经营活动产生的现金流量净额 <> 0
+       then round((psrt4.经营活动产生的现金流量净额 - psrt5.经营活动产生的现金流量净额) / psrt5.经营活动产生的现金流量净额, 2)
+       else null end 经营活动产生的现金流量净额同比,
+  case when psrt5.投资活动产生的现金流量净额 is not null and psrt5.投资活动产生的现金流量净额 <> 0
+       then round((psrt4.投资活动产生的现金流量净额 - psrt5.投资活动产生的现金流量净额) / psrt5.投资活动产生的现金流量净额, 2)
+       else null end 投资活动产生的现金流量净额同比,
+  case when psrt5.筹资活动产生的现金流量净额 is not null and psrt5.筹资活动产生的现金流量净额 <> 0
+       then round((psrt4.筹资活动产生的现金流量净额 - psrt5.筹资活动产生的现金流量净额) / psrt5.筹资活动产生的现金流量净额, 2)
+       else null end 筹资活动产生的现金流量净额同比,
+  case when psrt5.现金及现金等价物净增加额 is not null and psrt5.现金及现金等价物净增加额 <> 0
+       then round((psrt4.现金及现金等价物净增加额 - psrt5.现金及现金等价物净增加额) / psrt5.现金及现金等价物净增加额, 2)
+       else null end 现金及现金等价物净增加额同比,
+
+  case when psrt6.经营活动产生的现金流量净额 is not null and psrt6.经营活动产生的现金流量净额 <> 0
+       then round((psrt5.经营活动产生的现金流量净额 - psrt6.经营活动产生的现金流量净额) / psrt6.经营活动产生的现金流量净额, 2)
+       else null end 经营活动产生的现金流量净额环比,
+  case when psrt6.投资活动产生的现金流量净额 is not null and psrt6.投资活动产生的现金流量净额 <> 0
+       then round((psrt5.投资活动产生的现金流量净额 - psrt6.投资活动产生的现金流量净额) / psrt6.投资活动产生的现金流量净额, 2)
+       else null end 投资活动产生的现金流量净额环比,
+  case when psrt6.筹资活动产生的现金流量净额 is not null and psrt6.筹资活动产生的现金流量净额 <> 0
+       then round((psrt5.筹资活动产生的现金流量净额 - psrt6.筹资活动产生的现金流量净额) / psrt6.筹资活动产生的现金流量净额, 2)
+       else null end 筹资活动产生的现金流量净额环比,
+  case when psrt6.现金及现金等价物净增加额 is not null and psrt6.现金及现金等价物净增加额 <> 0
+       then round((psrt5.现金及现金等价物净增加额 - psrt6.现金及现金等价物净增加额) / psrt6.现金及现金等价物净增加额, 2)
+       else null end 现金及现金等价物净增加额环比
+from securities_profit_sheet_running_total psrt1
+left join (
+select
+  t.code, t."time", 营业收入, 营业利润, 净利润
+from securities_profit_sheet_running_total t
+) psrt2 on psrt1.code = psrt2.code and psrt1."time" = psrt2."time" + interval '1 year'
+left join (
+select
+  t.code, t."time", 营业收入, 营业利润, 净利润
+from securities_profit_sheet_running_total t
+) psrt3 on psrt1.code = psrt3.code and psrt1."time" = psrt3."time" + interval '1 month'
+left join (
+select
+  t.code, t."time", 经营活动产生的现金流量净额, 投资活动产生的现金流量净额, 筹资活动产生的现金流量净额, 现金及现金等价物净增加额
+from securities_cash_flow_sheet_running_total t
+) psrt4 on psrt1.code = psrt4.code and psrt1."time" = psrt4."time"
+left join (
+select
+  t.code, t."time", 经营活动产生的现金流量净额, 投资活动产生的现金流量净额, 筹资活动产生的现金流量净额, 现金及现金等价物净增加额
+from securities_cash_flow_sheet_running_total t
+) psrt5 on psrt1.code = psrt5.code and psrt1."time" = psrt5."time" + interval '1 year'
+left join (
+select
+  t.code, t."time", 经营活动产生的现金流量净额, 投资活动产生的现金流量净额, 筹资活动产生的现金流量净额, 现金及现金等价物净增加额
+from securities_cash_flow_sheet_running_total t
+) psrt6 on psrt1.code = psrt6.code and psrt1."time" = psrt6."time" + interval '1 month'
+where extract(year from psrt1."time") between start_year and end_year;
+end;
+$$ language plpgsql;
+
 -- transaction_soldout_subtotal:
 -- 已结实盈(清仓个股)，曾经持有，目前清仓的证券
 -- 要分期初已持有和期初未持有
