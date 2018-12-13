@@ -286,46 +286,46 @@ $$ language plpgsql;
 drop function if exists securities_kpis_1;
 create or replace function securities_kpis_1(start_year integer, end_year integer)
 returns table (code varchar(6), "time" date,
-               营业利润vs营业收入 numeric(20,2), 净利润vs营业收入     numeric(20,2),
-               净利润vs利润总额   numeric(20,2), 净利润vs股东权益合计 numeric(20,2)) as $$
+               营业利润vs营业收入 numeric(10,4), 净利润vs营业收入     numeric(10,4),
+               净利润vs利润总额   numeric(10,4), 净利润vs股东权益合计 numeric(10,4)) as $$
 begin
 return query
 select
   psrt.code, psrt."time",
-  case when psrt.营业收入 = 0 then null else round(psrt.营业利润/psrt.营业收入,2)     end 营业利润vs营业收入,
-  case when psrt.营业收入 = 0 then null else round(psrt.净利润/psrt.营业收入,2)       end 净利润vs营业收入,
-  case when psrt.利润总额 = 0 then null else round(psrt.净利润/psrt.利润总额,2)       end 净利润vs利润总额,
-  case when bsb.股东权益合计 = 0 then null else round(psrt.净利润/bsb.股东权益合计,2) end 净利润vs股东权益合计
+  case when psrt.营业收入 = 0 then null else round(psrt.营业利润/psrt.营业收入,4)     end 营业利润vs营业收入,
+  case when psrt.营业收入 = 0 then null else round(psrt.净利润/psrt.营业收入,4)       end 净利润vs营业收入,
+  case when psrt.利润总额 = 0 then null else round(psrt.净利润/psrt.利润总额,4)       end 净利润vs利润总额,
+  case when bsb.股东权益合计 = 0 then null else round(psrt.净利润/bsb.股东权益合计,4) end 净利润vs股东权益合计
 from securities_profit_sheet_running_total psrt
 join securities_balance_sheet_bank bsb on psrt.code = bsb.code and psrt."time" = bsb."time"
 where extract(year from psrt."time") between start_year and end_year
 union
 select
   psrt.code, psrt."time",
-  case when psrt.营业收入 = 0 then null else round(psrt.营业利润/psrt.营业收入,2)     end 营业利润vs营业收入,
-  case when psrt.营业收入 = 0 then null else round(psrt.净利润/psrt.营业收入,2)       end 净利润vs营业收入,
-  case when psrt.利润总额 = 0 then null else round(psrt.净利润/psrt.利润总额,2)       end 净利润vs利润总额,
-  case when bsg.所有者权益（或股东权益）合计 = 0 then null else round(psrt.净利润/bsg.所有者权益（或股东权益）合计,2) end 净利润vs股东权益合计
+  case when psrt.营业收入 = 0 then null else round(psrt.营业利润/psrt.营业收入,4)     end 营业利润vs营业收入,
+  case when psrt.营业收入 = 0 then null else round(psrt.净利润/psrt.营业收入,4)       end 净利润vs营业收入,
+  case when psrt.利润总额 = 0 then null else round(psrt.净利润/psrt.利润总额,4)       end 净利润vs利润总额,
+  case when bsg.所有者权益（或股东权益）合计 = 0 then null else round(psrt.净利润/bsg.所有者权益（或股东权益）合计,4) end 净利润vs股东权益合计
 from securities_profit_sheet_running_total psrt
 join securities_balance_sheet_general bsg on psrt.code = bsg.code and psrt."time" = bsg."time"
 where extract(year from psrt."time") between start_year and end_year
 union
 select
   psrt.code, psrt."time",
-  case when psrt.营业收入 = 0 then null else round(psrt.营业利润/psrt.营业收入,2)         end 营业利润vs营业收入,
-  case when psrt.营业收入 = 0 then null else round(psrt.净利润/psrt.营业收入,2)           end 净利润vs营业收入,
-  case when psrt.利润总额 = 0 then null else round(psrt.净利润/psrt.利润总额,2)           end 净利润vs利润总额,
-  case when bss.所有者权益合计 = 0 then null else round(psrt.净利润/bss.所有者权益合计,2) end 净利润vs股东权益合计
+  case when psrt.营业收入 = 0 then null else round(psrt.营业利润/psrt.营业收入,4)         end 营业利润vs营业收入,
+  case when psrt.营业收入 = 0 then null else round(psrt.净利润/psrt.营业收入,4)           end 净利润vs营业收入,
+  case when psrt.利润总额 = 0 then null else round(psrt.净利润/psrt.利润总额,4)           end 净利润vs利润总额,
+  case when bss.所有者权益合计 = 0 then null else round(psrt.净利润/bss.所有者权益合计,4) end 净利润vs股东权益合计
 from securities_profit_sheet_running_total psrt
 join securities_balance_sheet_securities bss on psrt.code = bss.code and psrt."time" = bss."time"
 where extract(year from psrt."time") between start_year and end_year
 union
 select
   psrt.code, psrt."time",
-  case when psrt.营业收入 = 0 then null else round(psrt.营业利润/psrt.营业收入,2)         end 营业利润vs营业收入,
-  case when psrt.营业收入 = 0 then null else round(psrt.净利润/psrt.营业收入,2)           end 净利润vs营业收入,
-  case when psrt.利润总额 = 0 then null else round(psrt.净利润/psrt.利润总额,2)           end 净利润vs利润总额,
-  case when bsi.所有者权益合计 = 0 then null else round(psrt.净利润/bsi.所有者权益合计,2) end 净利润vs股东权益合计
+  case when psrt.营业收入 = 0 then null else round(psrt.营业利润/psrt.营业收入,4)         end 营业利润vs营业收入,
+  case when psrt.营业收入 = 0 then null else round(psrt.净利润/psrt.营业收入,4)           end 净利润vs营业收入,
+  case when psrt.利润总额 = 0 then null else round(psrt.净利润/psrt.利润总额,4)           end 净利润vs利润总额,
+  case when bsi.所有者权益合计 = 0 then null else round(psrt.净利润/bsi.所有者权益合计,4) end 净利润vs股东权益合计
 from securities_profit_sheet_running_total psrt
 join securities_balance_sheet_insurance bsi on psrt.code = bsi.code and psrt."time" = bsi."time"
 where extract(year from psrt."time") between start_year and end_year;
