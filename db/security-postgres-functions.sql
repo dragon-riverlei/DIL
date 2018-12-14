@@ -403,12 +403,12 @@ left join (
 select
   t.code, t."time", 营业收入, 营业利润, 净利润
 from securities_profit_sheet_running_total t
-) psrt2 on psrt1.code = psrt2.code and psrt1."time" = psrt2."time" + interval '1 year'
+) psrt2 on psrt1.code = psrt2.code and ( psrt1."time" = psrt2."time" + interval '1 year' or psrt2."time" = psrt1."time" - interval '1 year' )
 left join (
 select
   t.code, t."time", 营业收入, 营业利润, 净利润
 from securities_profit_sheet_running_total t
-) psrt3 on psrt1.code = psrt3.code and psrt1."time" = psrt3."time" + interval '3 months'
+) psrt3 on psrt1.code = psrt3.code and ( psrt1."time" = psrt3."time" + interval '3 months' or psrt3."time" = psrt1."time" - interval '3 months' )
 left join (
 select
   t.code, t."time", 经营活动产生的现金流量净额, 投资活动产生的现金流量净额, 筹资活动产生的现金流量净额, 现金及现金等价物净增加额
@@ -418,12 +418,12 @@ left join (
 select
   t.code, t."time", 经营活动产生的现金流量净额, 投资活动产生的现金流量净额, 筹资活动产生的现金流量净额, 现金及现金等价物净增加额
 from securities_cash_flow_sheet_running_total t
-) psrt5 on psrt1.code = psrt5.code and psrt1."time" = psrt5."time" + interval '1 year'
+) psrt5 on psrt1.code = psrt5.code and ( psrt1."time" = psrt5."time" + interval '1 year' or psrt5."time" = psrt1."time" - interval '1 year' )
 left join (
 select
   t.code, t."time", 经营活动产生的现金流量净额, 投资活动产生的现金流量净额, 筹资活动产生的现金流量净额, 现金及现金等价物净增加额
 from securities_cash_flow_sheet_running_total t
-) psrt6 on psrt1.code = psrt6.code and psrt1."time" = psrt6."time" + interval '3 months'
+) psrt6 on psrt1.code = psrt6.code and ( psrt1."time" = psrt6."time" + interval '3 months' or psrt6."time" = psrt1."time" - interval '3 months' )
 where extract(year from psrt1."time") between start_year and end_year;
 end;
 $$ language plpgsql;
