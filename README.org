@@ -23,7 +23,8 @@
       - =stock list=: retrieve all available stocks based on the above code list, json files from *qt.gtimg.cn*
 **** initial
       - =stock day quote=: retrieve day quote of all available stocks, json files from *qt.gtimg.cn*
-        - cap, 市值, 亿元. convert to 元 in [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh of load_json_values_to_db.sh]] 
+        - cap, 市值, 亿元
+        - convert to 元 in *load_stock_day_quote_china* of [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh]]
       - =balance sheet=: with all available reporting date, csv file from *sina*
         - 元
       - =cash flow sheet=: with all available reporting date, csv file from *sina*
@@ -39,16 +40,16 @@
       - =stock list=: yearly at least, json files from *qt.gtimg.cn*
       - =stock day quote=: weekly at least, json files from *qt.gtimg.cn*
         - cap, 市值, 亿元
-        - convert to 元 in *load_stock_day_quote_china* [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh]] 
+        - convert to 元 in *load_stock_day_quote_china* of [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh]] 
       - =balance sheet=: quarterly aligned with the reporting date, parsed html
         - 万元
-        - convert to 元 in *print_jq_fields_extract* [[file:sh/print_regular_report_delta_jq_fields.sh][print_regular_report_delta_jq_fields.sh]] 
+        - convert to 元 in *print_jq_fields_extract* of [[file:sh/print_regular_report_delta_jq_fields.sh][print_regular_report_delta_jq_fields.sh]] 
       - =cash flow sheet=: quarterly aligned with the reporting date, parsed html
         - 万元
-        - convert to 元 in *print_jq_fields_extract* [[file:sh/print_regular_report_delta_jq_fields.sh][print_regular_report_delta_jq_fields.sh]]
+        - convert to 元 in *print_jq_fields_extract* of [[file:sh/print_regular_report_delta_jq_fields.sh][print_regular_report_delta_jq_fields.sh]]
       - =profit sheet=: quarterly aligned with the reporting date, parsed html
         - 万元
-        - convert to 元 in *print_jq_fields_extract* [[file:sh/print_regular_report_delta_jq_fields.sh][print_regular_report_delta_jq_fields.sh]]
+        - convert to 元 in *print_jq_fields_extract* of [[file:sh/print_regular_report_delta_jq_fields.sh][print_regular_report_delta_jq_fields.sh]]
       - =dividend=: 2 times per year, json file from *eastmoney*
         - 元
       - =stock structure=: 2 times per year, json file from *eastmoney*
@@ -112,7 +113,7 @@
            Thus, we can have a summary of all the possible values in the regular report.
            And this knowledge can be used to verify the logic when extracting data from the regular reports.
 
-****** 5th: scrape other regular reports (dividend, stock structure...)
+****** 5th: scrape other regular reports (dividend, stock structure, IPO info)
        The following spiders scrape delta regular reports other than balance, cash flow and profit for the list of stock codes determined
        by the output of [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]]. 
 
@@ -180,10 +181,10 @@
 ****** level of data completeness for financial statements (balance sheet, cash flow sheet and profit sheet)
        The higher of the level, the more complete of the data.
        The higher level meets all the criteria of the lower level.
-       - level 1: having consecutive years of annual reports (having any month of [3,6,9,12]) in given range of years.
+       - =level 1=: having consecutive years of annual reports (having any month of [3,6,9,12]) in given range of years.
                   Entry level, data not meeting the criteria won't be taken into account.
-       - level 2: with level 1 true and having consecutive semi-annual (each year must have months [6,12]) reports in given range of years.
-       - level 3: with level 2 true and having consecutive quarterly reports (each year must have all months of [3,6,9,12]) in given range of years.
+       - =level 2=: with level 1 true and having consecutive semi-annual (each year must have months [6,12]) reports in given range of years.
+       - =level 3=: with level 2 true and having consecutive quarterly reports (each year must have all months of [3,6,9,12]) in given range of years.
        - SQL functions used in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]] 
          - *find_code_time* (tbl regclass, start_year integer, end_year integer)
          - *find_code_with_missing_years* (tbl regclass, start_year integer, end_year integer)
@@ -193,10 +194,10 @@
        The higher of the level, the more mature of the stocks.
        The higher level meets all the criteria of the lower level.
        For companies whose IPOs are earlier than the date of earliest available data, use the earliest date of the data as IPO date.
-       - level 1: less than 3 years from now since IPO
-       - level 2: equal or greater than 3 years but less than 6 years from now since IPO
-       - level 3: equal or greater than 6 years but less than 10 years from now since IPO
-       - level 4: equal or greater than 10 years
+       - =level 1=: less than 3 years from now since IPO
+       - =level 2=: equal or greater than 3 years but less than 6 years from now since IPO
+       - =level 3=: equal or greater than 6 years but less than 10 years from now since IPO
+       - =level 4=: equal or greater than 10 years
        - SQL function used in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]]
          - *find_code_with_ipo_maturity_level* (level integer)
 ****** running total
