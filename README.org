@@ -21,6 +21,7 @@
 *** Storage
       - data retrieved by scrapy crawler is stored as files under *feeds*
       - data parsed from the above files are stored in a /postgres/ database named *dil*, /usr/local/var/postgres
+      - for sake of simplicity, the earliest year of the available data is 2010.
 
 *** A stock in Shanghai and Shenzhen
 **** normalization of units 
@@ -31,7 +32,7 @@
 ***** stock list: retrieve all available stocks based on the above code list, json files from qt.gtimg.cn
 **** initial
 ***** stock day quote: retrieve day quote of all available stocks, json files from qt.gtimg.cn
-      - cap, 市值, 亿元
+      - cap, 市值, 亿元. convert to 元 in [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh of load_json_values_to_db.sh]] 
 ***** balance sheet: with all available reporting date, csv file from sina
       - 元
 ***** cash flow sheet: with all available reporting date, csv file from sina
@@ -46,13 +47,13 @@
 ***** stock code list: yearly at least, json files from stock.gtimg.cn
 ***** stock list: yearly at least, json files from qt.gtimg.cn
 ***** stock day quote: weekly at least, json files from qt.gtimg.cn
-      - cap, 市值, 亿元
+      - cap, 市值, 亿元, convert to 元 in [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh of load_json_values_to_db.sh]] 
 ***** balance sheet: quarterly aligned with the reporting date, parsed html
-      - 万元
+      - 万元, convert to 元 in [[file:sh/print_regular_report_delta_jq_fields.sh][print_jq_fields_extract of print_regular_report_delta_jq_fields.sh]] 
 ***** cash flow sheet: quarterly aligned with the reporting date, parsed html
-      - 万元
+      - 万元, convert to 元 in [[file:sh/print_regular_report_delta_jq_fields.sh][print_jq_fields_extract of print_regular_report_delta_jq_fields.sh]] 
 ***** profit sheet: quarterly aligned with the reporting date, parsed html
-      - 万元
+      - 万元, convert to 元 in [[file:sh/print_regular_report_delta_jq_fields.sh][print_jq_fields_extract of print_regular_report_delta_jq_fields.sh]] 
 ***** dividend: 2 times per year, json file from eastmoney 
       - 元
 ***** stock structure: 2 times per year, json file from eastmoney 
@@ -109,7 +110,7 @@
 
 ****** 4th: process delta regular reports (balance, cash flow and profit)
 ******* [[file:sh/check_regular_report_delta_fields.sh][check_regular_report_delta_fields.sh]]
-          Report if there is any difference of list of fields between the initial and delta regular report.
+        Report if there is any difference of list of fields between the initial and delta regular report.
 ******* [[file:sh/check_regular_report_delta_values.sh][check_regular_report_delta_values.sh]]
           Return an enumeration of values of all the fields that appear in the regular report.
           For the value that is numeric, a "yes" is returned.
@@ -186,10 +187,15 @@
 ****** level of data completeness for financial statements (balance sheet, cash flow sheet and profit sheet)
         The higher of the level, the more complete of the data.
         The higher level meets all the criteria of the lower level.
-       - level 1: having consecutive annual reports in given range of years.
+       - level 1: having consecutive years of annual reports (having any month of [3,6,9.12]) in given range of years.
                   Entry level, data not meeting the criteria won't be taken into account.
-       - level 2: having consecutive semi-annual reports in given range of years.
-       - level 3: having consecutive quarterly reports in given range of years.
+       - level 2: with level 1 true and having consecutive semi-annual (each year must have months [6,12]) reports in given range of years.
+       - level 3: with level 2 true and having consecutive quarterly reports (each year must have months [3,6,9,12]) in given range of years.
+******* SQL functions used in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]] 
+find_code_time(tbl regclass, start_year integer, end_year integer)
+find_code_with_missing_years(tbl regclass, start_year integer, end_year integer)
+find_code_with_missing_months(tbl regclass, start_year integer, end_year integer, expected_months integer[])
+find_code_with_data_completeness_level(level integer, start_year integer, end_year integer, cur_expected_months integer[] default array[]::integer[]) 
 ****** level of maturity since IPO
         The higher of the level, the more mature of the stocks.
         The higher level meets all the criteria of the lower level.
@@ -198,3 +204,51 @@
        - level 2: equal or greater than 3 years but less than 6 years from now since IPO
        - level 3: equal or greater than 6 years but less than 10 years from now since IPO
        - level 4: equal or greater than 10 years
+******* SQL function used in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]]
+find_code_with_ipo_maturity_level(level integer)
+****** running total
+       Running total covers the following reports:
+       - =cash flow sheet=, calculated for bank, general, insurance, securities separately
+       - =profit sheet=, calculated for bank, general, insurance, securities separately
+       It comes with 2 styles: one accepts a range of [start_year, end_year] =(style 1)= and the other accepts a single_year =(style 2)=.
+
+       The correct usage of =style 1= is:
+       1. start with 2010 as *start_year* and current year - 1 as *end_year*. For example, if current year is 2018, then *end_year* is 2017.
+       2. repeat step 1 but increment the *start_year* by 1, the *end_year* remains unchanged.
+       3. stop only when *start_year* is greater than *end_year*
+
+       The correct usage of =style 2= is:
+       1. use =style 2= only when =style 1= has been successfully completed.
+       2. the single_year is the current year. 
+******* running total of cash flow sheet
+  经营活动产生的现金流量净额
+  投资活动产生的现金流量净额
+  筹资活动产生的现金流量净额
+  现金及现金等价物净增加额
+******* running total of profit sheet
+  营业收入
+  营业支出
+  营业利润
+  利润总额
+  净利润
+****** kpis
+******* kpis calculated by =securities_kpis_1= in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]]
+  营业利润vs营业收入
+  净利润vs营业收入
+  净利润vs利润总额
+  净利润vs股东权益合计
+******* kpis calculated by =securities_kpis_2= in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]]
+  营业收入同比
+  营业利润同比
+  净利润同比
+  营业收入环比
+  营业利润环比
+  净利润环比
+  经营活动产生的现金流量净额同比
+  投资活动产生的现金流量净额同比
+  筹资活动产生的现金流量净额同比
+  现金及现金等价物净增加额同比
+  经营活动产生的现金流量净额环比
+  投资活动产生的现金流量净额环比
+  筹资活动产生的现金流量净额环比
+  现金及现金等价物净增加额环比
