@@ -21,7 +21,7 @@
 **** Inception
       - =stock code list=: retrieve all available stock codes, json files from *stock.gtimg.cn*
       - =stock list=: retrieve all available stocks based on the above code list, json files from *qt.gtimg.cn*
-**** initial
+**** Initial
       - =stock day quote=: retrieve day quote of all available stocks, json files from *qt.gtimg.cn*
         - cap, 市值, 亿元
         - convert to 元 in *load_stock_day_quote_china* of [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh]]
@@ -35,7 +35,7 @@
         - 元
       - =stock structure=: json file from *eastmoney*
         - 万股
-**** delta
+**** Delta
       - =stock code list=: yearly at least, json files from *stock.gtimg.cn*
       - =stock list=: yearly at least, json files from *qt.gtimg.cn*
       - =stock day quote=: weekly at least, json files from *qt.gtimg.cn*
