@@ -22,32 +22,36 @@
       - =stock code list=: retrieve all available stock codes, json files from *stock.gtimg.cn*
       - =stock list=: retrieve all available stocks based on the above code list, json files from *qt.gtimg.cn*
 **** initial
-      - =stock day quote=: retrieve day quote of all available stocks, json files from qt.gtimg.cn
+      - =stock day quote=: retrieve day quote of all available stocks, json files from *qt.gtimg.cn*
         - cap, 市值, 亿元. convert to 元 in [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh of load_json_values_to_db.sh]] 
-      - =balance sheet=: with all available reporting date, csv file from sina
+      - =balance sheet=: with all available reporting date, csv file from *sina*
         - 元
-      - =cash flow sheet=: with all available reporting date, csv file from sina
+      - =cash flow sheet=: with all available reporting date, csv file from *sina*
         - 元
-      - =profit sheet=: with all available reporting date, csv file from sina
+      - =profit sheet=: with all available reporting date, csv file from *sina*
         - 元
-      - =dividend=: since 2011-6-30, json file from eastmoney
+      - =dividend=: since 2011-6-30, json file from *eastmoney*
         - 元
-      - =stock structure=: json file from eastmoney
+      - =stock structure=: json file from *eastmoney*
         - 万股
 **** delta
-      - =stock code list=: yearly at least, json files from stock.gtimg.cn
-      - =stock list=: yearly at least, json files from qt.gtimg.cn
-      - =stock day quote=: weekly at least, json files from qt.gtimg.cn
-        - cap, 市值, 亿元, convert to 元 in [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh of load_json_values_to_db.sh]] 
+      - =stock code list=: yearly at least, json files from *stock.gtimg.cn*
+      - =stock list=: yearly at least, json files from *qt.gtimg.cn*
+      - =stock day quote=: weekly at least, json files from *qt.gtimg.cn*
+        - cap, 市值, 亿元
+        - convert to 元 in *load_stock_day_quote_china* [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh]] 
       - =balance sheet=: quarterly aligned with the reporting date, parsed html
-        - 万元, convert to 元 in [[file:sh/print_regular_report_delta_jq_fields.sh][print_jq_fields_extract of print_regular_report_delta_jq_fields.sh]] 
+        - 万元
+        - convert to 元 in *print_jq_fields_extract* [[file:sh/print_regular_report_delta_jq_fields.sh][print_regular_report_delta_jq_fields.sh]] 
       - =cash flow sheet=: quarterly aligned with the reporting date, parsed html
-        - 万元, convert to 元 in [[file:sh/print_regular_report_delta_jq_fields.sh][print_jq_fields_extract of print_regular_report_delta_jq_fields.sh]] 
+        - 万元
+        - convert to 元 in *print_jq_fields_extract* [[file:sh/print_regular_report_delta_jq_fields.sh][print_regular_report_delta_jq_fields.sh]]
       - =profit sheet=: quarterly aligned with the reporting date, parsed html
-        - 万元, convert to 元 in [[file:sh/print_regular_report_delta_jq_fields.sh][print_jq_fields_extract of print_regular_report_delta_jq_fields.sh]] 
-      - =dividend=: 2 times per year, json file from eastmoney
+        - 万元
+        - convert to 元 in *print_jq_fields_extract* [[file:sh/print_regular_report_delta_jq_fields.sh][print_regular_report_delta_jq_fields.sh]]
+      - =dividend=: 2 times per year, json file from *eastmoney*
         - 元
-      - =stock structure=: 2 times per year, json file from eastmoney
+      - =stock structure=: 2 times per year, json file from *eastmoney*
         - 万股
 **** Workflow
       The data workflow is staged.
@@ -79,8 +83,8 @@
        - [[file:crawl/crawl/spiders/securities/china/StockFdmtProfitSheetChinaInitialSpider.py][StockFdmtProfitSheetChinaInitialSpider]]
 
        After the execution of 3 spiders scraping initial sheets and before proceeding further,
-       [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]] should be called to ensure there is no valid code missing initial sheets, and
-       [[file:sh/clean_regular_report_exit_market.sh][clean_regular_report_exit_market.sh]] is better to be called to clean codes that are known to have exited market.
+       - [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]] should be called to ensure there is no valid code missing initial sheets, and
+       - [[file:sh/clean_regular_report_exit_market.sh][clean_regular_report_exit_market.sh]] is better to be called to clean codes that are known to have exited market.
 
 ****** 2nd: process initial regular reports (balance, cash flow and profit)
        - [[file:sh/classify_regular_report.sh][classify_regular_report.sh]]
@@ -96,17 +100,17 @@
        - [[file:crawl/crawl/spiders/securities/china/StockFdmtProfitSheetChinaDeltaSpider.py][StockFdmtProfitSheetChinaDeltaSpider]]
 
        After the execution of 3 spiders scraping delta sheets and before proceeding further,
-       find_regular_report_not_scraped.sh]] should be called to ensure there is no valid code missing delta sheets.
+       [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]] should be called to ensure there is no valid code missing delta sheets.
 
 ****** 4th: process delta regular reports (balance, cash flow and profit)
        - [[file:sh/check_regular_report_delta_fields.sh][check_regular_report_delta_fields.sh]]
-         Report if there is any difference of list of fields between the initial and delta regular report.
+         - Report if there is any difference of list of fields between the initial and delta regular report.
        - [[file:sh/check_regular_report_delta_values.sh][check_regular_report_delta_values.sh]]
-         Return an enumeration of values of all the fields that appear in the regular report.
-         For the value that is numeric, a "yes" is returned.
-         For the value that is NOT numeric, it is returned literally.
-         Thus, we can have a summary of all the possible values in the regular report.
-         And this knowledge can be used to verify the logic when extracting data from the regular reports.
+         - Return an enumeration of values of all the fields that appear in the regular report.
+           For the value that is numeric, a "yes" is returned.
+           For the value that is NOT numeric, it is returned literally.
+           Thus, we can have a summary of all the possible values in the regular report.
+           And this knowledge can be used to verify the logic when extracting data from the regular reports.
 
 ****** 5th: scrape other regular reports (dividend, stock structure...)
        The following spiders scrape delta regular reports other than balance, cash flow and profit for the list of stock codes determined
@@ -116,9 +120,9 @@
        - [[file:crawl/crawl/spiders/securities/china/StockDividendChinaSpider.py][StockDividendChinaSpider]] for dividend
        - [[file:crawl/crawl/spiders/securities/china/StockIpoInfoChinaSpider.py][StockIpoInfoChinaSpider]] for IPO related info
 
-       [[file:sh/check_regular_stock_structure_values.sh][check_regular_stock_structure_values.sh]] for sanity check of values of stock structure.
-       [[file:sh/check_regular_dividend_values.sh][check_regular_dividend_values.sh]] for sanity check of values of dividend.
-       [[file:sh/check_stock_ipo_info_values.sh][check_stock_ipo_info_values.sh]] for sanity check of values of IPO info.
+       - [[file:sh/check_regular_stock_structure_values.sh][check_regular_stock_structure_values.sh]] for sanity check of values of stock structure.
+       - [[file:sh/check_regular_dividend_values.sh][check_regular_dividend_values.sh]] for sanity check of values of dividend.
+       - [[file:sh/check_stock_ipo_info_values.sh][check_stock_ipo_info_values.sh]] for sanity check of values of IPO info.
 
 ***** Stage 2: write to DB
 ****** 1st: table definition for the regular reports
@@ -146,8 +150,8 @@
          - securities_profit_sheet_insurance
          - securities_stock_structure
          
-         [[file:sh/print_regular_report_fields.sh][print_regular_report_fields.sh]] is used to generate the fields for all balance, cash flow and profit tables.
-         [[file:sh/print_stock_structure_sql_fields.sh][print_stock_structure_sql_fields.sh]] is used to generate the fields for table ~securities_stock_structure~.
+       [[file:sh/print_regular_report_fields.sh][print_regular_report_fields.sh]] is used to generate the fields for all balance, cash flow and profit tables.
+       [[file:sh/print_stock_structure_sql_fields.sh][print_stock_structure_sql_fields.sh]] is used to generate the fields for table ~securities_stock_structure~.
 
 ****** 2nd: prepare data for writing to DB
        The data to be loaded into DB should be of CSV formatted.
@@ -176,15 +180,15 @@
 ****** level of data completeness for financial statements (balance sheet, cash flow sheet and profit sheet)
        The higher of the level, the more complete of the data.
        The higher level meets all the criteria of the lower level.
-       - level 1: having consecutive years of annual reports (having any month of [3,6,9.12]) in given range of years.
+       - level 1: having consecutive years of annual reports (having any month of [3,6,9,12]) in given range of years.
                   Entry level, data not meeting the criteria won't be taken into account.
        - level 2: with level 1 true and having consecutive semi-annual (each year must have months [6,12]) reports in given range of years.
-       - level 3: with level 2 true and having consecutive quarterly reports (each year must have months [3,6,9,12]) in given range of years.
+       - level 3: with level 2 true and having consecutive quarterly reports (each year must have all months of [3,6,9,12]) in given range of years.
        - SQL functions used in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]] 
-         - find_code_time(tbl regclass, start_year integer, end_year integer)
-         - find_code_with_missing_years(tbl regclass, start_year integer, end_year integer)
-         - find_code_with_missing_months(tbl regclass, start_year integer, end_year integer, expected_months integer[])
-         - find_code_with_data_completeness_level(level integer, start_year integer, end_year integer, cur_expected_months integer[] default array[]::integer[]) 
+         - *find_code_time* (tbl regclass, start_year integer, end_year integer)
+         - *find_code_with_missing_years* (tbl regclass, start_year integer, end_year integer)
+         - *find_code_with_missing_months* (tbl regclass, start_year integer, end_year integer, expected_months integer[])
+         - *find_code_with_data_completeness_level* (level integer, start_year integer, end_year integer, cur_expected_months integer[] default array[]::integer[]) 
 ****** level of maturity since IPO
        The higher of the level, the more mature of the stocks.
        The higher level meets all the criteria of the lower level.
@@ -194,12 +198,12 @@
        - level 3: equal or greater than 6 years but less than 10 years from now since IPO
        - level 4: equal or greater than 10 years
        - SQL function used in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]]
-         - find_code_with_ipo_maturity_level(level integer)
+         - *find_code_with_ipo_maturity_level* (level integer)
 ****** running total
        Running total covers the following reports:
        - =cash flow sheet=, calculated for bank, general, insurance, securities separately
        - =profit sheet=, calculated for bank, general, insurance, securities separately
-       It comes with 2 styles: one accepts a range of [start_year, end_year] =(style 1)= and the other accepts a single_year =(style 2)=.
+       It comes with 2 styles: one accepts a range of *[start_year, end_year]* =(style 1)= and the other accepts a *single_year* =(style 2)=.
 
        The correct usage of =style 1= is:
        1. start with 2010 as *start_year* and current year - 1 as *end_year*. For example, if current year is 2018, then *end_year* is 2017.
@@ -208,7 +212,7 @@
 
        The correct usage of =style 2= is:
        1. use =style 2= only when =style 1= has been successfully completed.
-       2. the single_year is the current year. 
+       2. the *single_year* is the current year. 
        - running total of cash flow sheet
          - 经营活动产生的现金流量净额
          - 投资活动产生的现金流量净额
@@ -221,12 +225,12 @@
          - 利润总额
          - 净利润
 ****** kpis
-       - kpis calculated by =securities_kpis_1= in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]]
+       - kpis calculated by *securities_kpis_1* in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]]
          - 营业利润vs营业收入
          - 净利润vs营业收入
          - 净利润vs利润总额
          - 净利润vs股东权益合计
-       - kpis calculated by =securities_kpis_2= in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]]
+       - kpis calculated by *securities_kpis_2* in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]]
          - 营业收入同比
          - 营业利润同比
          - 净利润同比
