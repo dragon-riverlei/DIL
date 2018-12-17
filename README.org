@@ -60,13 +60,12 @@
 
 ***** Stage 0: stock code list and stock list
       Scrape stock code list. It will be used by the other spiders to decide what stock to crawl.
-****** [[file:crawl/crawl/spiders/securities/china/StockCodeListChinaSpider.py][StockCodeListChinaSpider]]
-       - This spider writes stock codes to [[file:feeds/stock_code_list_china.jl][feeds/stock_code_list_china.jl]].
-       - The source of this spider is supposed to exclude stock codes that exited market.
-
-****** [[file:crawl/crawl/spiders/securities/china/StockListChinaSpider.py][StockListChinaSpider]]
-       - This spider scrape more profile info based on the above stock codes, such as name, market, country.
-       - It writes to [[file:feeds/stock_list_china.jl][feeds/stock_list_china.jl]].
+      - [[file:crawl/crawl/spiders/securities/china/StockCodeListChinaSpider.py][StockCodeListChinaSpider]]
+        - This spider writes stock codes to [[file:feeds/stock_code_list_china.jl][feeds/stock_code_list_china.jl]].
+        - The source of this spider is supposed to exclude stock codes that exited market.
+      - [[file:crawl/crawl/spiders/securities/china/StockListChinaSpider.py][StockListChinaSpider]]
+        - This spider scrape more profile info based on the above stock codes, such as name, market, country.
+        - It writes to [[file:feeds/stock_list_china.jl][feeds/stock_list_china.jl]].
 
 ***** Stage 1: scrape, clean, validate
 ****** 1st: scrape initial regular reports (balance, cash flow and profit)
@@ -84,25 +83,25 @@
        [[file:sh/clean_regular_report_exit_market.sh][clean_regular_report_exit_market.sh]] is better to be called to clean codes that are known to have exited market.
 
 ****** 2nd: process initial regular reports (balance, cash flow and profit)
-******* [[file:sh/classify_regular_report.sh][classify_regular_report.sh]]
+       - [[file:sh/classify_regular_report.sh][classify_regular_report.sh]]
          This bash script compares the list of fields in the initial regular reports and groups the code with the same list.
          In the mean time, a schema of fields list for each group is also generated.
          This is the basis for further group specific processing.
 ****** 3rd: scrape delta regular reports (balance, cash flow and profit)
-        The following 3 spiders scrape delta regular reports of balance, cash flow and profit for the list of stock codes determined
-        by the output of [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]]. 
+       The following 3 spiders scrape delta regular reports of balance, cash flow and profit for the list of stock codes determined
+       by the output of [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]]. 
 
-        - [[file:crawl/crawl/spiders/securities/china/StockFdmtBalanceSheetChinaDeltaSpider.py][StockFdmtBalanceSheetChinaDeltaSpider]]
-        - [[file:crawl/crawl/spiders/securities/china/StockFdmtCashflowSheetChinaDeltaSpider.py][StockFdmtCashflowSheetChinaDeltaSpider]]
-        - [[file:crawl/crawl/spiders/securities/china/StockFdmtProfitSheetChinaDeltaSpider.py][StockFdmtProfitSheetChinaDeltaSpider]]
+       - [[file:crawl/crawl/spiders/securities/china/StockFdmtBalanceSheetChinaDeltaSpider.py][StockFdmtBalanceSheetChinaDeltaSpider]]
+       - [[file:crawl/crawl/spiders/securities/china/StockFdmtCashflowSheetChinaDeltaSpider.py][StockFdmtCashflowSheetChinaDeltaSpider]]
+       - [[file:crawl/crawl/spiders/securities/china/StockFdmtProfitSheetChinaDeltaSpider.py][StockFdmtProfitSheetChinaDeltaSpider]]
 
-        After the execution of 3 spiders scraping delta sheets and before proceeding further,
-        [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]] should be called to ensure there is no valid code missing delta sheets.
+       After the execution of 3 spiders scraping delta sheets and before proceeding further,
+       find_regular_report_not_scraped.sh]] should be called to ensure there is no valid code missing delta sheets.
 
 ****** 4th: process delta regular reports (balance, cash flow and profit)
-******* [[file:sh/check_regular_report_delta_fields.sh][check_regular_report_delta_fields.sh]]
+       - [[file:sh/check_regular_report_delta_fields.sh][check_regular_report_delta_fields.sh]]
          Report if there is any difference of list of fields between the initial and delta regular report.
-******* [[file:sh/check_regular_report_delta_values.sh][check_regular_report_delta_values.sh]]
+       - [[file:sh/check_regular_report_delta_values.sh][check_regular_report_delta_values.sh]]
          Return an enumeration of values of all the fields that appear in the regular report.
          For the value that is numeric, a "yes" is returned.
          For the value that is NOT numeric, it is returned literally.
@@ -110,93 +109,92 @@
          And this knowledge can be used to verify the logic when extracting data from the regular reports.
 
 ****** 5th: scrape other regular reports (dividend, stock structure...)
-        The following spiders scrape delta regular reports other than balance, cash flow and profit for the list of stock codes determined
-        by the output of [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]]. 
+       The following spiders scrape delta regular reports other than balance, cash flow and profit for the list of stock codes determined
+       by the output of [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]]. 
 
-        - [[file:crawl/crawl/spiders/securities/china/StockStructureChinaSpider.py][StockStructureChinaSpider]] for stock structure
-        - [[file:crawl/crawl/spiders/securities/china/StockDividendChinaSpider.py][StockDividendChinaSpider]] for dividend
-        - [[file:crawl/crawl/spiders/securities/china/StockIpoInfoChinaSpider.py][StockIpoInfoChinaSpider]] for IPO related info
+       - [[file:crawl/crawl/spiders/securities/china/StockStructureChinaSpider.py][StockStructureChinaSpider]] for stock structure
+       - [[file:crawl/crawl/spiders/securities/china/StockDividendChinaSpider.py][StockDividendChinaSpider]] for dividend
+       - [[file:crawl/crawl/spiders/securities/china/StockIpoInfoChinaSpider.py][StockIpoInfoChinaSpider]] for IPO related info
 
-        [[file:sh/check_regular_stock_structure_values.sh][check_regular_stock_structure_values.sh]] for sanity check of values of stock structure.
-        [[file:sh/check_regular_dividend_values.sh][check_regular_dividend_values.sh]] for sanity check of values of dividend.
-        [[file:sh/check_stock_ipo_info_values.sh][check_stock_ipo_info_values.sh]] for sanity check of values of IPO info.
+       [[file:sh/check_regular_stock_structure_values.sh][check_regular_stock_structure_values.sh]] for sanity check of values of stock structure.
+       [[file:sh/check_regular_dividend_values.sh][check_regular_dividend_values.sh]] for sanity check of values of dividend.
+       [[file:sh/check_stock_ipo_info_values.sh][check_stock_ipo_info_values.sh]] for sanity check of values of IPO info.
 
 ***** Stage 2: write to DB
 ****** 1st: table definition for the regular reports
-******* tables whose fields are defined manually
-          - securities_code
-          - securities_dividend
-          - securities_day_quote
-          - securities_ipo
-          - securities_kpi
-          - securities_transaction
-          - securities_holding
-          - cash_holding
-
-******* tables whose fields are defined programmatic-ally
-          - securities_balance_sheet_bank
-          - securities_balance_sheet_general
-          - securities_balance_sheet_securities
-          - securities_balance_sheet_insurance
-          - securities_cash_flow_sheet_bank
-          - securities_cash_flow_sheet_general
-          - securities_cash_flow_sheet_securities
-          - securities_cash_flow_sheet_insurance
-          - securities_profit_sheet_bank
-          - securities_profit_sheet_general
-          - securities_profit_sheet_securities
-          - securities_profit_sheet_insurance
-          - securities_stock_structure
-          
-          [[file:sh/print_regular_report_fields.sh][print_regular_report_fields.sh]] is used to generate the fields for all balance, cash flow and profit tables.
-          [[file:sh/print_stock_structure_sql_fields.sh][print_stock_structure_sql_fields.sh]] is used to generate the fields for table ~securities_stock_structure~.
+       - tables whose fields are defined manually
+         - securities_code
+         - securities_dividend
+         - securities_day_quote
+         - securities_ipo
+         - securities_kpi
+         - securities_transaction
+         - securities_holding
+         - cash_holding
+       - tables whose fields are defined programmatic-ally
+         - securities_balance_sheet_bank
+         - securities_balance_sheet_general
+         - securities_balance_sheet_securities
+         - securities_balance_sheet_insurance
+         - securities_cash_flow_sheet_bank
+         - securities_cash_flow_sheet_general
+         - securities_cash_flow_sheet_securities
+         - securities_cash_flow_sheet_insurance
+         - securities_profit_sheet_bank
+         - securities_profit_sheet_general
+         - securities_profit_sheet_securities
+         - securities_profit_sheet_insurance
+         - securities_stock_structure
+         
+         [[file:sh/print_regular_report_fields.sh][print_regular_report_fields.sh]] is used to generate the fields for all balance, cash flow and profit tables.
+         [[file:sh/print_stock_structure_sql_fields.sh][print_stock_structure_sql_fields.sh]] is used to generate the fields for table ~securities_stock_structure~.
 
 ****** 2nd: prepare data for writing to DB
-        The data to be loaded into DB should be of CSV formatted.
+       The data to be loaded into DB should be of CSV formatted.
 
-******* prepare initial/delta regular reports data (balance, cash flow and profit)
-          [[file:sh/prepare_regular_report_csv_values.sh][prepare_regular_report_csv_values.sh]] is used to:
-          - for initial regular report in csv format, transpose the row and column.
-          - for delta regular report in json format, convert from json format to csv format.
+       - prepare initial/delta regular reports data (balance, cash flow and profit)
+         [[file:sh/prepare_regular_report_csv_values.sh][prepare_regular_report_csv_values.sh]] is used to:
+         - for initial regular report in csv format, transpose the row and column.
+         - for delta regular report in json format, convert from json format to csv format.
 
-******* prepare other regular reports data
-          - [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh]]
-            - [[file:sh/convert_regular_dividend_json_to_csv.jq][convert_regular_dividend_json_to_csv.jq]]
-            - [[file:sh/convert_regular_stock_structure_json_to_csv.sh][convert_regular_stock_structure_json_to_csv.sh]] 
+       - prepare other regular reports data
+         - [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh]]
+           - [[file:sh/convert_regular_dividend_json_to_csv.jq][convert_regular_dividend_json_to_csv.jq]]
+           - [[file:sh/convert_regular_stock_structure_json_to_csv.sh][convert_regular_stock_structure_json_to_csv.sh]] 
 
 ****** 3rd: write to DB
-        The following scripts are used to load CSV formatted data into DB.
-        - [[file:sh/load_regular_report_csv_values_to_db.sh][load_regular_report_csv_values_to_db.sh]]
-        - [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh]]
+       The following scripts are used to load CSV formatted data into DB.
+       - [[file:sh/load_regular_report_csv_values_to_db.sh][load_regular_report_csv_values_to_db.sh]]
+       - [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh]]
 
-        - [[file:sh/load_values_to_db.sh][load_values_to_db.sh]] and
-        - [[file:sh/load_delta_values_to_db.sh][load_delta_values_to_db.sh]] are the facades of preparing / loading data into DB.
+       - [[file:sh/load_values_to_db.sh][load_values_to_db.sh]] and
+       - [[file:sh/load_delta_values_to_db.sh][load_delta_values_to_db.sh]] are the facades of preparing / loading data into DB.
 
 ***** Stage 3: more rigorous validation of data at DB side
-        consistency of units
+      consistency of units
 ***** Stage 4: analyze
 ****** level of data completeness for financial statements (balance sheet, cash flow sheet and profit sheet)
-        The higher of the level, the more complete of the data.
-        The higher level meets all the criteria of the lower level.
+       The higher of the level, the more complete of the data.
+       The higher level meets all the criteria of the lower level.
        - level 1: having consecutive years of annual reports (having any month of [3,6,9.12]) in given range of years.
                   Entry level, data not meeting the criteria won't be taken into account.
        - level 2: with level 1 true and having consecutive semi-annual (each year must have months [6,12]) reports in given range of years.
        - level 3: with level 2 true and having consecutive quarterly reports (each year must have months [3,6,9,12]) in given range of years.
-******* SQL functions used in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]] 
-find_code_time(tbl regclass, start_year integer, end_year integer)
-find_code_with_missing_years(tbl regclass, start_year integer, end_year integer)
-find_code_with_missing_months(tbl regclass, start_year integer, end_year integer, expected_months integer[])
-find_code_with_data_completeness_level(level integer, start_year integer, end_year integer, cur_expected_months integer[] default array[]::integer[]) 
+       - SQL functions used in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]] 
+         - find_code_time(tbl regclass, start_year integer, end_year integer)
+         - find_code_with_missing_years(tbl regclass, start_year integer, end_year integer)
+         - find_code_with_missing_months(tbl regclass, start_year integer, end_year integer, expected_months integer[])
+         - find_code_with_data_completeness_level(level integer, start_year integer, end_year integer, cur_expected_months integer[] default array[]::integer[]) 
 ****** level of maturity since IPO
-        The higher of the level, the more mature of the stocks.
-        The higher level meets all the criteria of the lower level.
-        For companies whose IPOs are earlier than the date of earliest available data, use the earliest date of the data as IPO date.
+       The higher of the level, the more mature of the stocks.
+       The higher level meets all the criteria of the lower level.
+       For companies whose IPOs are earlier than the date of earliest available data, use the earliest date of the data as IPO date.
        - level 1: less than 3 years from now since IPO
        - level 2: equal or greater than 3 years but less than 6 years from now since IPO
        - level 3: equal or greater than 6 years but less than 10 years from now since IPO
        - level 4: equal or greater than 10 years
-******* SQL function used in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]]
-find_code_with_ipo_maturity_level(level integer)
+       - SQL function used in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]]
+         - find_code_with_ipo_maturity_level(level integer)
 ****** running total
        Running total covers the following reports:
        - =cash flow sheet=, calculated for bank, general, insurance, securities separately
@@ -211,35 +209,35 @@ find_code_with_ipo_maturity_level(level integer)
        The correct usage of =style 2= is:
        1. use =style 2= only when =style 1= has been successfully completed.
        2. the single_year is the current year. 
-******* running total of cash flow sheet
-  经营活动产生的现金流量净额
-  投资活动产生的现金流量净额
-  筹资活动产生的现金流量净额
-  现金及现金等价物净增加额
-******* running total of profit sheet
-  营业收入
-  营业支出
-  营业利润
-  利润总额
-  净利润
+       - running total of cash flow sheet
+         - 经营活动产生的现金流量净额
+         - 投资活动产生的现金流量净额
+         - 筹资活动产生的现金流量净额
+         - 现金及现金等价物净增加额
+       - running total of profit sheet
+         - 营业收入
+         - 营业支出
+         - 营业利润
+         - 利润总额
+         - 净利润
 ****** kpis
-******* kpis calculated by =securities_kpis_1= in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]]
-  营业利润vs营业收入
-  净利润vs营业收入
-  净利润vs利润总额
-  净利润vs股东权益合计
-******* kpis calculated by =securities_kpis_2= in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]]
-  营业收入同比
-  营业利润同比
-  净利润同比
-  营业收入环比
-  营业利润环比
-  净利润环比
-  经营活动产生的现金流量净额同比
-  投资活动产生的现金流量净额同比
-  筹资活动产生的现金流量净额同比
-  现金及现金等价物净增加额同比
-  经营活动产生的现金流量净额环比
-  投资活动产生的现金流量净额环比
-  筹资活动产生的现金流量净额环比
-  现金及现金等价物净增加额环比
+       - kpis calculated by =securities_kpis_1= in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]]
+         - 营业利润vs营业收入
+         - 净利润vs营业收入
+         - 净利润vs利润总额
+         - 净利润vs股东权益合计
+       - kpis calculated by =securities_kpis_2= in [[file:db/security-postgres-functions.sql][security-postgres-functions.sql]]
+         - 营业收入同比
+         - 营业利润同比
+         - 净利润同比
+         - 营业收入环比
+         - 营业利润环比
+         - 净利润环比
+         - 经营活动产生的现金流量净额同比
+         - 投资活动产生的现金流量净额同比
+         - 筹资活动产生的现金流量净额同比
+         - 现金及现金等价物净增加额同比
+         - 经营活动产生的现金流量净额环比
+         - 投资活动产生的现金流量净额环比
+         - 筹资活动产生的现金流量净额环比
+         - 现金及现金等价物净增加额环比
