@@ -10,15 +10,15 @@
 
 ** Data
 *** Storage
-     - data retrieved by scrapy crawler is stored as files under *feeds*
-     - data parsed from the above files are stored in a /postgres/ database named *dil*, /usr/local/var/postgres
-     - for sake of simplicity, the earliest year of the available data is 2010.
+     - Data retrieved by scrapy crawler is stored as files under *feeds*
+     - Data parsed from the above files are stored in a /postgres/ database named *dil*, /usr/local/var/postgres
+     - For sake of simplicity, the earliest year of the available data is 2010.
 
 *** A stock in Shanghai and Shenzhen
-**** normalization of units 
+**** Normalization of Units
       - RMB:  元
       - 股本: 万股 
-**** inception
+**** Inception
       - =stock code list=: retrieve all available stock codes, json files from *stock.gtimg.cn*
       - =stock list=: retrieve all available stocks based on the above code list, json files from *qt.gtimg.cn*
 **** initial
@@ -26,68 +26,68 @@
         - cap, 市值, 亿元. convert to 元 in [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh of load_json_values_to_db.sh]] 
       - =balance sheet=: with all available reporting date, csv file from sina
         - 元
-***** cash flow sheet: with all available reporting date, csv file from sina
-      - 元
-***** profit sheet: with all available reporting date, csv file from sina
-      - 元
-***** dividend: since 2011-6-30, json file from eastmoney 
-      - 元
-***** stock structure: json file from eastmoney 
-      - 万股
+      - =cash flow sheet=: with all available reporting date, csv file from sina
+        - 元
+      - =profit sheet=: with all available reporting date, csv file from sina
+        - 元
+      - =dividend=: since 2011-6-30, json file from eastmoney
+        - 元
+      - =stock structure=: json file from eastmoney
+        - 万股
 **** delta
-***** stock code list: yearly at least, json files from stock.gtimg.cn
-***** stock list: yearly at least, json files from qt.gtimg.cn
-***** stock day quote: weekly at least, json files from qt.gtimg.cn
-      - cap, 市值, 亿元, convert to 元 in [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh of load_json_values_to_db.sh]] 
-***** balance sheet: quarterly aligned with the reporting date, parsed html
-      - 万元, convert to 元 in [[file:sh/print_regular_report_delta_jq_fields.sh][print_jq_fields_extract of print_regular_report_delta_jq_fields.sh]] 
-***** cash flow sheet: quarterly aligned with the reporting date, parsed html
-      - 万元, convert to 元 in [[file:sh/print_regular_report_delta_jq_fields.sh][print_jq_fields_extract of print_regular_report_delta_jq_fields.sh]] 
-***** profit sheet: quarterly aligned with the reporting date, parsed html
-      - 万元, convert to 元 in [[file:sh/print_regular_report_delta_jq_fields.sh][print_jq_fields_extract of print_regular_report_delta_jq_fields.sh]] 
-***** dividend: 2 times per year, json file from eastmoney 
-      - 元
-***** stock structure: 2 times per year, json file from eastmoney 
-      - 万股
+      - =stock code list=: yearly at least, json files from stock.gtimg.cn
+      - =stock list=: yearly at least, json files from qt.gtimg.cn
+      - =stock day quote=: weekly at least, json files from qt.gtimg.cn
+        - cap, 市值, 亿元, convert to 元 in [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh of load_json_values_to_db.sh]] 
+      - =balance sheet=: quarterly aligned with the reporting date, parsed html
+        - 万元, convert to 元 in [[file:sh/print_regular_report_delta_jq_fields.sh][print_jq_fields_extract of print_regular_report_delta_jq_fields.sh]] 
+      - =cash flow sheet=: quarterly aligned with the reporting date, parsed html
+        - 万元, convert to 元 in [[file:sh/print_regular_report_delta_jq_fields.sh][print_jq_fields_extract of print_regular_report_delta_jq_fields.sh]] 
+      - =profit sheet=: quarterly aligned with the reporting date, parsed html
+        - 万元, convert to 元 in [[file:sh/print_regular_report_delta_jq_fields.sh][print_jq_fields_extract of print_regular_report_delta_jq_fields.sh]] 
+      - =dividend=: 2 times per year, json file from eastmoney
+        - 元
+      - =stock structure=: 2 times per year, json file from eastmoney
+        - 万股
 **** Workflow
       The data workflow is staged.
-      - =Stage 0=: stock code list and stock list
-      - =Stage 1=: scrape, clean, validate
-      - =Stage 2=: write to DB
-      - =Stage 3=: more rigorous validation of data at DB side
-      - =Stage 4=: analyze from DB
+      - =stage 0=: stock code list and stock list
+      - =stage 1=: scrape, clean, validate
+      - =stage 2=: write to DB
+      - =stage 3=: more rigorous validation of data at DB side
+      - =stage 4=: analyze from DB
       The latter stage depends and only depends on the final output of the former stage.
 
 ***** Stage 0: stock code list and stock list
-****** 1st: scrape stock code list. It will be used by the other spiders to decide what stock to crawl.
-******* [[file:crawl/crawl/spiders/securities/china/StockCodeListChinaSpider.py][StockCodeListChinaSpider]]
-          This spider writes stock codes to [[file:feeds/stock_code_list_china.jl][feeds/stock_code_list_china.jl]].
-          The source of this spider is supposed to exclude stock codes that exited market.
+      Scrape stock code list. It will be used by the other spiders to decide what stock to crawl.
+****** [[file:crawl/crawl/spiders/securities/china/StockCodeListChinaSpider.py][StockCodeListChinaSpider]]
+       - This spider writes stock codes to [[file:feeds/stock_code_list_china.jl][feeds/stock_code_list_china.jl]].
+       - The source of this spider is supposed to exclude stock codes that exited market.
 
-******* [[file:crawl/crawl/spiders/securities/china/StockListChinaSpider.py][StockListChinaSpider]]
-          This spider scrape more profile info based on the above stock codes, such as name, market, country.
-          And it writes to [[file:feeds/stock_list_china.jl][feeds/stock_list_china.jl]].
+****** [[file:crawl/crawl/spiders/securities/china/StockListChinaSpider.py][StockListChinaSpider]]
+       - This spider scrape more profile info based on the above stock codes, such as name, market, country.
+       - It writes to [[file:feeds/stock_list_china.jl][feeds/stock_list_china.jl]].
 
 ***** Stage 1: scrape, clean, validate
 ****** 1st: scrape initial regular reports (balance, cash flow and profit)
-        The following 3 spiders scrape initial regular reports of balance, cash flow and profit for the list of stock codes determined
-        by the output of [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]]. This bash script calls [[file:sh/find_stock_list_china_with_absence_regular_report.sh][find_stock_list_china_with_absence_regular_report.sh]]
-        to find out list of codes that don't have initial regular reports for the given time (a sign of market exit)
-        and exclude these codes from being scraped.
+       The following 3 spiders scrape initial regular reports of balance, cash flow and profit for the list of stock codes determined
+       by the output of [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]]. This bash script calls [[file:sh/find_stock_list_china_with_absence_regular_report.sh][find_stock_list_china_with_absence_regular_report.sh]]
+       to find out list of codes that don't have initial regular reports for the given time (a sign of market exit)
+       and exclude these codes from being scraped.
 
        - [[file:crawl/crawl/spiders/securities/china/StockFdmtBalanceSheetChinaInitialSpider.py][StockFdmtBalanceSheetChinaInitialSpider]]
        - [[file:crawl/crawl/spiders/securities/china/StockFdmtCashflowSheetChinaInitialSpider.py][StockFdmtCashflowSheetChinaInitialSpider]] 
        - [[file:crawl/crawl/spiders/securities/china/StockFdmtProfitSheetChinaInitialSpider.py][StockFdmtProfitSheetChinaInitialSpider]]
 
-        After the execution of 3 spiders scraping initial sheets and before proceeding further,
-        [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]] should be called to ensure there is no valid code missing initial sheets, and
-        [[file:sh/clean_regular_report_exit_market.sh][clean_regular_report_exit_market.sh]] is better to be called to clean codes that are known to have exited market.
+       After the execution of 3 spiders scraping initial sheets and before proceeding further,
+       [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]] should be called to ensure there is no valid code missing initial sheets, and
+       [[file:sh/clean_regular_report_exit_market.sh][clean_regular_report_exit_market.sh]] is better to be called to clean codes that are known to have exited market.
 
 ****** 2nd: process initial regular reports (balance, cash flow and profit)
 ******* [[file:sh/classify_regular_report.sh][classify_regular_report.sh]]
-          This bash script compares the list of fields in the initial regular reports and groups the code with the same list.
-          In the mean time, a schema of fields list for each group is also generated.
-          This is the basis for further group specific processing.
+         This bash script compares the list of fields in the initial regular reports and groups the code with the same list.
+         In the mean time, a schema of fields list for each group is also generated.
+         This is the basis for further group specific processing.
 ****** 3rd: scrape delta regular reports (balance, cash flow and profit)
         The following 3 spiders scrape delta regular reports of balance, cash flow and profit for the list of stock codes determined
         by the output of [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]]. 
@@ -101,21 +101,21 @@
 
 ****** 4th: process delta regular reports (balance, cash flow and profit)
 ******* [[file:sh/check_regular_report_delta_fields.sh][check_regular_report_delta_fields.sh]]
-        Report if there is any difference of list of fields between the initial and delta regular report.
+         Report if there is any difference of list of fields between the initial and delta regular report.
 ******* [[file:sh/check_regular_report_delta_values.sh][check_regular_report_delta_values.sh]]
-          Return an enumeration of values of all the fields that appear in the regular report.
-          For the value that is numeric, a "yes" is returned.
-          For the value that is NOT numeric, it is returned literally.
-          Thus, we can have a summary of all the possible values in the regular report.
-          And this knowledge can be used to verify the logic when extracting data from the regular reports.
+         Return an enumeration of values of all the fields that appear in the regular report.
+         For the value that is numeric, a "yes" is returned.
+         For the value that is NOT numeric, it is returned literally.
+         Thus, we can have a summary of all the possible values in the regular report.
+         And this knowledge can be used to verify the logic when extracting data from the regular reports.
 
 ****** 5th: scrape other regular reports (dividend, stock structure...)
         The following spiders scrape delta regular reports other than balance, cash flow and profit for the list of stock codes determined
         by the output of [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]]. 
 
-       - [[file:crawl/crawl/spiders/securities/china/StockStructureChinaSpider.py][StockStructureChinaSpider]] for stock structure
-       - [[file:crawl/crawl/spiders/securities/china/StockDividendChinaSpider.py][StockDividendChinaSpider]] for dividend
-       - [[file:crawl/crawl/spiders/securities/china/StockIpoInfoChinaSpider.py][StockIpoInfoChinaSpider]] for IPO related info
+        - [[file:crawl/crawl/spiders/securities/china/StockStructureChinaSpider.py][StockStructureChinaSpider]] for stock structure
+        - [[file:crawl/crawl/spiders/securities/china/StockDividendChinaSpider.py][StockDividendChinaSpider]] for dividend
+        - [[file:crawl/crawl/spiders/securities/china/StockIpoInfoChinaSpider.py][StockIpoInfoChinaSpider]] for IPO related info
 
         [[file:sh/check_regular_stock_structure_values.sh][check_regular_stock_structure_values.sh]] for sanity check of values of stock structure.
         [[file:sh/check_regular_dividend_values.sh][check_regular_dividend_values.sh]] for sanity check of values of dividend.
