@@ -83,6 +83,7 @@
        [[file:sh/clean_regular_report_exit_market.sh][clean_regular_report_exit_market.sh]] is better to be called to clean codes that are known to have exited market.
 
 ****** 2nd: process initial regular reports (balance, cash flow and profit)
+
        - [[file:sh/classify_regular_report.sh][classify_regular_report.sh]]
          This bash script compares the list of fields in the initial regular reports and groups the code with the same list.
          In the mean time, a schema of fields list for each group is also generated.
