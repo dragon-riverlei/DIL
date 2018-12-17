@@ -1,40 +1,31 @@
 * DIL
-    DIL stands for Data Intelligence Log.
+   DIL stands for Data Intelligence Log.
 
 ** Directory layout
-*** crawl
-      The scrapy project
-
-*** db 
-      The SQL scripts
-
-*** feeds
-      The downloaded data
-
-*** sh
-      The bash scripts
-
-*** tmp
-      The temporary directory to place some intermediary files
+    - =crawl=: the scrapy project
+    - =db=: the SQL scripts
+    - =feeds=: the downloaded data
+    - =sh=: the bash scripts
+    - =tmp=: the temporary directory to place some intermediary files
 
 ** Data
 *** Storage
-      - data retrieved by scrapy crawler is stored as files under *feeds*
-      - data parsed from the above files are stored in a /postgres/ database named *dil*, /usr/local/var/postgres
-      - for sake of simplicity, the earliest year of the available data is 2010.
+     - data retrieved by scrapy crawler is stored as files under *feeds*
+     - data parsed from the above files are stored in a /postgres/ database named *dil*, /usr/local/var/postgres
+     - for sake of simplicity, the earliest year of the available data is 2010.
 
 *** A stock in Shanghai and Shenzhen
 **** normalization of units 
       - RMB:  元
       - 股本: 万股 
 **** inception
-***** stock code list: retrieve all available stock codes, json files from stock.gtimg.cn
-***** stock list: retrieve all available stocks based on the above code list, json files from qt.gtimg.cn
+      - =stock code list=: retrieve all available stock codes, json files from *stock.gtimg.cn*
+      - =stock list=: retrieve all available stocks based on the above code list, json files from *qt.gtimg.cn*
 **** initial
-***** stock day quote: retrieve day quote of all available stocks, json files from qt.gtimg.cn
-      - cap, 市值, 亿元. convert to 元 in [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh of load_json_values_to_db.sh]] 
-***** balance sheet: with all available reporting date, csv file from sina
-      - 元
+      - =stock day quote=: retrieve day quote of all available stocks, json files from qt.gtimg.cn
+        - cap, 市值, 亿元. convert to 元 in [[file:sh/load_json_values_to_db.sh][load_json_values_to_db.sh of load_json_values_to_db.sh]] 
+      - =balance sheet=: with all available reporting date, csv file from sina
+        - 元
 ***** cash flow sheet: with all available reporting date, csv file from sina
       - 元
 ***** profit sheet: with all available reporting date, csv file from sina
