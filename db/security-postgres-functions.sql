@@ -286,8 +286,8 @@ $$ language plpgsql;
 drop function if exists securities_kpis_1;
 create or replace function securities_kpis_1(start_year integer, end_year integer)
 returns table (code varchar(6), "time" date,
-               营业利润vs营业收入 numeric(10,4), 净利润vs营业收入     numeric(10,4),
-               净利润vs利润总额   numeric(10,4), 净利润vs股东权益合计 numeric(10,4)) as $$
+               营业利润vs营业收入 numeric(20,4), 净利润vs营业收入     numeric(20,4),
+               净利润vs利润总额   numeric(20,4), 净利润vs股东权益合计 numeric(20,4)) as $$
 begin
 return query
 select
@@ -335,20 +335,20 @@ $$ language plpgsql;
 drop function if exists securities_kpis_2;
 create or replace function securities_kpis_2(start_year integer, end_year integer)
 returns table (code varchar(6), "time" date,
-               营业收入同比 numeric(10,4),
-               营业利润同比 numeric(10,4),
-               净利润同比 numeric(10,4),
-               营业收入环比 numeric(10,4),
-               营业利润环比 numeric(10,4),
-               净利润环比 numeric(10,4),
-               经营活动产生的现金流量净额同比 numeric(10,4),
-               投资活动产生的现金流量净额同比 numeric(10,4),
-               筹资活动产生的现金流量净额同比 numeric(10,4),
-               现金及现金等价物净增加额同比 numeric(10,4),
-               经营活动产生的现金流量净额环比 numeric(10,4),
-               投资活动产生的现金流量净额环比 numeric(10,4),
-               筹资活动产生的现金流量净额环比 numeric(10,4),
-               现金及现金等价物净增加额环比 numeric(10,4)) as $$
+               营业收入同比 numeric(20,4),
+               营业利润同比 numeric(20,4),
+               净利润同比 numeric(20,4),
+               营业收入环比 numeric(20,4),
+               营业利润环比 numeric(20,4),
+               净利润环比 numeric(20,4),
+               经营活动产生的现金流量净额同比 numeric(20,4),
+               投资活动产生的现金流量净额同比 numeric(20,4),
+               筹资活动产生的现金流量净额同比 numeric(20,4),
+               现金及现金等价物净增加额同比 numeric(20,4),
+               经营活动产生的现金流量净额环比 numeric(20,4),
+               投资活动产生的现金流量净额环比 numeric(20,4),
+               筹资活动产生的现金流量净额环比 numeric(20,4),
+               现金及现金等价物净增加额环比 numeric(20,4)) as $$
 begin
 return query
 select
@@ -425,6 +425,78 @@ select
 from securities_cash_flow_sheet_running_total t
 ) psrt6 on psrt1.code = psrt6.code and date_trunc('quarter', psrt1."time"::timestamp) = date_trunc('quarter', psrt6."time"::timestamp) + interval '3 months'
 where extract(year from psrt1."time") between start_year and end_year;
+end;
+$$ language plpgsql;
+
+drop function if exists insert_securities_kpis_1;
+create or replace function insert_securities_kpis_1(start_year integer, end_year integer) returns integer as $$
+declare
+  affected_row_count integer := 0;
+begin
+perform drop_index_securities_kpi();
+insert into securities_kpi
+select
+  kpi1.code, kpi1."time",
+  kpi1.营业利润vs营业收入,
+  kpi1.净利润vs营业收入,
+  kpi1.净利润vs利润总额,
+  kpi1.净利润vs股东权益合计
+from securities_kpis_1(start_year, end_year) kpi1
+order by kpi1.code, kpi1."time"
+on conflict (code, "time") do update set
+  营业利润vs营业收入   = excluded.营业利润vs营业收入,
+  净利润vs营业收入     = excluded.净利润vs营业收入,
+  净利润vs利润总额     = excluded.净利润vs利润总额,
+  净利润vs股东权益合计 = excluded.净利润vs股东权益合计;
+get diagnostics affected_row_count = row_count;
+perform create_index_securities_kpi();
+return affected_row_count;
+end;
+$$ language plpgsql;
+
+drop function if exists insert_securities_kpis_2;
+create or replace function insert_securities_kpis_2(start_year integer, end_year integer) returns integer as $$
+declare
+  affected_row_count integer := 0;
+begin
+perform drop_index_securities_kpi();
+insert into securities_kpi
+select
+  kpi2.code, kpi2."time",
+  kpi2.营业收入同比,
+  kpi2.营业利润同比,
+  kpi2.净利润同比,
+  kpi2.营业收入环比,
+  kpi2.营业利润环比,
+  kpi2.净利润环比,
+  kpi2.经营活动产生的现金流量净额同比,
+  kpi2.投资活动产生的现金流量净额同比,
+  kpi2.筹资活动产生的现金流量净额同比,
+  kpi2.现金及现金等价物净增加额同比,
+  kpi2.经营活动产生的现金流量净额环比,
+  kpi2.投资活动产生的现金流量净额环比,
+  kpi2.筹资活动产生的现金流量净额环比,
+  kpi2.现金及现金等价物净增加额环比
+from securities_kpis_2(start_year, end_year) kpi2
+order by kpi2.code, kpi2."time"
+on conflict (code, "time") do update set
+  营业收入同比 = excluded.营业收入同比,
+  营业利润同比 = excluded.营业利润同比,
+  净利润同比   = excluded.净利润同比,
+  营业收入环比 = excluded.营业收入环比,
+  营业利润环比 = excluded.营业利润环比,
+  净利润环比   = excluded.净利润环比,
+  经营活动产生的现金流量净额同比 = excluded.经营活动产生的现金流量净额同比,
+  投资活动产生的现金流量净额同比 = excluded.投资活动产生的现金流量净额同比,
+  筹资活动产生的现金流量净额同比 = excluded.筹资活动产生的现金流量净额同比,
+  现金及现金等价物净增加额同比   = excluded.现金及现金等价物净增加额同比,
+  经营活动产生的现金流量净额环比 = excluded.经营活动产生的现金流量净额环比,
+  投资活动产生的现金流量净额环比 = excluded.投资活动产生的现金流量净额环比,
+  筹资活动产生的现金流量净额环比 = excluded.筹资活动产生的现金流量净额环比,
+  现金及现金等价物净增加额环比   = excluded.现金及现金等价物净增加额环比;
+get diagnostics affected_row_count = row_count;
+perform create_index_securities_kpi();
+return affected_row_count;
 end;
 $$ language plpgsql;
 
