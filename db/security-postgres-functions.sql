@@ -292,40 +292,40 @@ begin
 return query
 select
   psrt.code, psrt."time",
-  case when psrt.营业收入 = 0 then null else round(psrt.营业利润/psrt.营业收入,4)     end 营业利润vs营业收入,
-  case when psrt.营业收入 = 0 then null else round(psrt.净利润/psrt.营业收入,4)       end 净利润vs营业收入,
-  case when psrt.利润总额 = 0 then null else round(psrt.净利润/psrt.利润总额,4)       end 净利润vs利润总额,
-  case when bsb.股东权益合计 = 0 then null else round(psrt.净利润/bsb.股东权益合计,4) end 净利润vs股东权益合计
+  case when psrt.营业收入 = 0 then null else round(psrt.营业利润/psrt.营业收入*100,4)     end 营业利润vs营业收入,
+  case when psrt.营业收入 = 0 then null else round(psrt.净利润/psrt.营业收入*100,4)       end 净利润vs营业收入,
+  case when psrt.利润总额 = 0 then null else round(psrt.净利润/psrt.利润总额*100,4)       end 净利润vs利润总额,
+  case when bsb.股东权益合计 = 0 then null else round(psrt.净利润/bsb.股东权益合计*100,4) end 净利润vs股东权益合计
 from securities_profit_sheet_running_total psrt
 join securities_balance_sheet_bank bsb on psrt.code = bsb.code and psrt."time" = bsb."time"
 where extract(year from psrt."time") between start_year and end_year
 union
 select
   psrt.code, psrt."time",
-  case when psrt.营业收入 = 0 then null else round(psrt.营业利润/psrt.营业收入,4)     end 营业利润vs营业收入,
-  case when psrt.营业收入 = 0 then null else round(psrt.净利润/psrt.营业收入,4)       end 净利润vs营业收入,
-  case when psrt.利润总额 = 0 then null else round(psrt.净利润/psrt.利润总额,4)       end 净利润vs利润总额,
-  case when bsg.所有者权益（或股东权益）合计 = 0 then null else round(psrt.净利润/bsg.所有者权益（或股东权益）合计,4) end 净利润vs股东权益合计
+  case when psrt.营业收入 = 0 then null else round(psrt.营业利润/psrt.营业收入*100,4)     end 营业利润vs营业收入,
+  case when psrt.营业收入 = 0 then null else round(psrt.净利润/psrt.营业收入*100,4)       end 净利润vs营业收入,
+  case when psrt.利润总额 = 0 then null else round(psrt.净利润/psrt.利润总额*100,4)       end 净利润vs利润总额,
+  case when bsg.所有者权益（或股东权益）合计 = 0 then null else round(psrt.净利润/bsg.所有者权益（或股东权益）合计*100,4) end 净利润vs股东权益合计
 from securities_profit_sheet_running_total psrt
 join securities_balance_sheet_general bsg on psrt.code = bsg.code and psrt."time" = bsg."time"
 where extract(year from psrt."time") between start_year and end_year
 union
 select
   psrt.code, psrt."time",
-  case when psrt.营业收入 = 0 then null else round(psrt.营业利润/psrt.营业收入,4)         end 营业利润vs营业收入,
-  case when psrt.营业收入 = 0 then null else round(psrt.净利润/psrt.营业收入,4)           end 净利润vs营业收入,
-  case when psrt.利润总额 = 0 then null else round(psrt.净利润/psrt.利润总额,4)           end 净利润vs利润总额,
-  case when bss.所有者权益合计 = 0 then null else round(psrt.净利润/bss.所有者权益合计,4) end 净利润vs股东权益合计
+  case when psrt.营业收入 = 0 then null else round(psrt.营业利润/psrt.营业收入*100,4)         end 营业利润vs营业收入,
+  case when psrt.营业收入 = 0 then null else round(psrt.净利润/psrt.营业收入*100,4)           end 净利润vs营业收入,
+  case when psrt.利润总额 = 0 then null else round(psrt.净利润/psrt.利润总额*100,4)           end 净利润vs利润总额,
+  case when bss.所有者权益合计 = 0 then null else round(psrt.净利润/bss.所有者权益合计*100,4) end 净利润vs股东权益合计
 from securities_profit_sheet_running_total psrt
 join securities_balance_sheet_securities bss on psrt.code = bss.code and psrt."time" = bss."time"
 where extract(year from psrt."time") between start_year and end_year
 union
 select
   psrt.code, psrt."time",
-  case when psrt.营业收入 = 0 then null else round(psrt.营业利润/psrt.营业收入,4)         end 营业利润vs营业收入,
-  case when psrt.营业收入 = 0 then null else round(psrt.净利润/psrt.营业收入,4)           end 净利润vs营业收入,
-  case when psrt.利润总额 = 0 then null else round(psrt.净利润/psrt.利润总额,4)           end 净利润vs利润总额,
-  case when bsi.所有者权益合计 = 0 then null else round(psrt.净利润/bsi.所有者权益合计,4) end 净利润vs股东权益合计
+  case when psrt.营业收入 = 0 then null else round(psrt.营业利润/psrt.营业收入*100,4)         end 营业利润vs营业收入,
+  case when psrt.营业收入 = 0 then null else round(psrt.净利润/psrt.营业收入*100,4)           end 净利润vs营业收入,
+  case when psrt.利润总额 = 0 then null else round(psrt.净利润/psrt.利润总额*100,4)           end 净利润vs利润总额,
+  case when bsi.所有者权益合计 = 0 then null else round(psrt.净利润/bsi.所有者权益合计*100,4) end 净利润vs股东权益合计
 from securities_profit_sheet_running_total psrt
 join securities_balance_sheet_insurance bsi on psrt.code = bsi.code and psrt."time" = bsi."time"
 where extract(year from psrt."time") between start_year and end_year;
@@ -354,49 +354,49 @@ return query
 select
   psrt1.code, psrt1."time",
   case when psrt2.营业收入 is not null and psrt2.营业收入 <> 0
-       then round((psrt1.营业收入 - psrt2.营业收入) / psrt2.营业收入, 2)
+       then round((psrt1.营业收入 - psrt2.营业收入) / psrt2.营业收入 * 100, 4)
        else null end 营业收入同比,
   case when psrt2.营业利润 is not null and psrt2.营业利润 <> 0
-       then round((psrt1.营业利润 - psrt2.营业利润) / psrt2.营业利润, 2)
+  then round((psrt1.营业利润 - psrt2.营业利润) / psrt2.营业利润 * 100, 4)
        else null end 营业利润同比,
   case when psrt2.净利润 is not null and psrt2.净利润 <> 0
-       then round((psrt1.净利润 - psrt2.净利润) / psrt2.净利润, 2)
+       then round((psrt1.净利润 - psrt2.净利润) / psrt2.净利润 * 100, 4)
        else null end 净利润同比,
 
   case when psrt3.营业收入 is not null and psrt3.营业收入 <> 0
-       then round((psrt1.营业收入 - psrt3.营业收入) / psrt3.营业收入, 2)
+       then round((psrt1.营业收入 - psrt3.营业收入) / psrt3.营业收入 * 100, 4)
        else null end 营业收入环比,
   case when psrt3.营业利润 is not null and psrt3.营业利润 <> 0
-      then round((psrt1.营业利润 - psrt3.营业利润) / psrt3.营业利润, 2)
+       then round((psrt1.营业利润 - psrt3.营业利润) / psrt3.营业利润 * 100, 4)
        else null end 营业利润环比,
   case when psrt3.净利润 is not null and psrt3.净利润 <> 0
-       then round((psrt1.净利润 - psrt3.净利润) / psrt3.净利润, 2)
+       then round((psrt1.净利润 - psrt3.净利润) / psrt3.净利润 * 100, 4)
        else null end 净利润环比,
 
   case when psrt5.经营活动产生的现金流量净额 is not null and psrt5.经营活动产生的现金流量净额 <> 0
-       then round((psrt4.经营活动产生的现金流量净额 - psrt5.经营活动产生的现金流量净额) / psrt5.经营活动产生的现金流量净额, 2)
+       then round((psrt4.经营活动产生的现金流量净额 - psrt5.经营活动产生的现金流量净额) / psrt5.经营活动产生的现金流量净额 * 100, 4)
        else null end 经营活动产生的现金流量净额同比,
   case when psrt5.投资活动产生的现金流量净额 is not null and psrt5.投资活动产生的现金流量净额 <> 0
-       then round((psrt4.投资活动产生的现金流量净额 - psrt5.投资活动产生的现金流量净额) / psrt5.投资活动产生的现金流量净额, 2)
+       then round((psrt4.投资活动产生的现金流量净额 - psrt5.投资活动产生的现金流量净额) / psrt5.投资活动产生的现金流量净额 * 100, 4)
        else null end 投资活动产生的现金流量净额同比,
   case when psrt5.筹资活动产生的现金流量净额 is not null and psrt5.筹资活动产生的现金流量净额 <> 0
-       then round((psrt4.筹资活动产生的现金流量净额 - psrt5.筹资活动产生的现金流量净额) / psrt5.筹资活动产生的现金流量净额, 2)
+       then round((psrt4.筹资活动产生的现金流量净额 - psrt5.筹资活动产生的现金流量净额) / psrt5.筹资活动产生的现金流量净额 * 100, 4)
        else null end 筹资活动产生的现金流量净额同比,
   case when psrt5.现金及现金等价物净增加额 is not null and psrt5.现金及现金等价物净增加额 <> 0
-       then round((psrt4.现金及现金等价物净增加额 - psrt5.现金及现金等价物净增加额) / psrt5.现金及现金等价物净增加额, 2)
+       then round((psrt4.现金及现金等价物净增加额 - psrt5.现金及现金等价物净增加额) / psrt5.现金及现金等价物净增加额 * 100, 4)
        else null end 现金及现金等价物净增加额同比,
 
   case when psrt6.经营活动产生的现金流量净额 is not null and psrt6.经营活动产生的现金流量净额 <> 0
-       then round((psrt4.经营活动产生的现金流量净额 - psrt6.经营活动产生的现金流量净额) / psrt6.经营活动产生的现金流量净额, 2)
+       then round((psrt4.经营活动产生的现金流量净额 - psrt6.经营活动产生的现金流量净额) / psrt6.经营活动产生的现金流量净额 * 100, 4)
        else null end 经营活动产生的现金流量净额环比,
   case when psrt6.投资活动产生的现金流量净额 is not null and psrt6.投资活动产生的现金流量净额 <> 0
-       then round((psrt4.投资活动产生的现金流量净额 - psrt6.投资活动产生的现金流量净额) / psrt6.投资活动产生的现金流量净额, 2)
+       then round((psrt4.投资活动产生的现金流量净额 - psrt6.投资活动产生的现金流量净额) / psrt6.投资活动产生的现金流量净额 * 100, 4)
        else null end 投资活动产生的现金流量净额环比,
   case when psrt6.筹资活动产生的现金流量净额 is not null and psrt6.筹资活动产生的现金流量净额 <> 0
-       then round((psrt4.筹资活动产生的现金流量净额 - psrt6.筹资活动产生的现金流量净额) / psrt6.筹资活动产生的现金流量净额, 2)
+       then round((psrt4.筹资活动产生的现金流量净额 - psrt6.筹资活动产生的现金流量净额) / psrt6.筹资活动产生的现金流量净额 * 100, 4)
        else null end 筹资活动产生的现金流量净额环比,
   case when psrt6.现金及现金等价物净增加额 is not null and psrt6.现金及现金等价物净增加额 <> 0
-       then round((psrt4.现金及现金等价物净增加额 - psrt6.现金及现金等价物净增加额) / psrt6.现金及现金等价物净增加额, 2)
+       then round((psrt4.现金及现金等价物净增加额 - psrt6.现金及现金等价物净增加额) / psrt6.现金及现金等价物净增加额 * 100, 4)
        else null end 现金及现金等价物净增加额环比
 from securities_profit_sheet_running_total psrt1
 left join (
@@ -428,27 +428,72 @@ where extract(year from psrt1."time") between start_year and end_year;
 end;
 $$ language plpgsql;
 
+drop function if exists securities_kpis_3;
+create or replace function securities_kpis_3()
+returns table (code varchar(6),
+               市值 numeric(20,2), 市盈率 numeric(10,4), 市净率 numeric(10,4),
+               市盈率vs净利润增长率 numeric(10,4)) as $$
+begin
+return query
+select
+  dq.code, dq."time",
+  dq.price * ss.总股本 * 10000.0 市值,
+  case when psrt.净利润 <> 0 then dq.price * ss.总股本 * 10000.0 / psrt.净利润 else null end 市盈率,
+  case when bs.股东权益合计 <> 0 then dq.price * ss.总股本 * 10000.0 / bs.股东权益合计 else null end 市净率,
+  case when psrt.净利润 <> 0 and kpi.净利润增长率 <> 0 then dq.price * ss.总股本 * 10000.0 / psrt.净利润 / kpi.净利润增长率 else null end 市盈率vs净利润增长率
+from (
+  select code, "time", price from securities_day_quote where time = (select max(time) from securities_day_quote)) dq
+join (
+  select ss1.code, ss1.总股本 from securities_stock_structure ss1
+  join (select code, max(time) "time" from securities_stock_structure group by code) ss2 on ss1.code = ss2.code and ss1."time" = ss2."time"
+) ss on dq.code = ss.code
+join (
+  select psrt1.code, psrt1.净利润 from securities_profit_sheet_running_total psrt1
+  join (select code, max(time) "time" from securities_profit_sheet_running_total group by code) psrt2 on psrt1.code = psrt2.code and psrt1."time" = psrt2."time"
+) psrt on dq.code = psrt.code
+join (
+  select bsb1.code code, bsb1.股东权益合计 股东权益合计 from securities_balance_sheet_bank bsb1
+  join (select code, max(time) "time" from securities_balance_sheet_bank group by code) bsb2 on bsb1.code = bsb2.code and bsb1."time" = bsb2."time"
+  union
+  select bsg1.code code, bsg1.所有者权益（或股东权益）合计 股东权益合计 from securities_balance_sheet_general bsg1
+  join (select code, max(time) "time" from securities_balance_sheet_general group by code) bsg2 on bsg1.code = bsg2.code and bsg1."time" = bsg2."time"
+  union
+  select bss1.code code, bss1.所有者权益合计 股东权益合计 from securities_balance_sheet_securities bss1
+  join (select code, max(time) "time" from securities_balance_sheet_securities group by code) bss2 on bss1.code = bss2.code and bss1."time" = bss2."time"
+  union
+  select bsi1.code code, bsi1.所有者权益合计 股东权益合计 from securities_balance_sheet_insurance bsi1
+  join (select code, max(time) "time" from securities_balance_sheet_insurance group by code) bsi2 on bsi1.code = bsi2.code and bsi1."time" = bsi2."time"
+) bs on dq.code = bs.code
+join (
+select k.code, avg(k.净利润同比) 净利润增长率 from (select code, 净利润同比, row_number() over (partition by code order by "time" desc) row_num from securities_kpi) k
+  where k.row_num < 5
+  group by k.code
+) kpi on dq.code = kpi.code;
+end;
+$$ language plpgsql;
+
 drop function if exists insert_securities_kpis_1;
 create or replace function insert_securities_kpis_1(start_year integer, end_year integer) returns integer as $$
 declare
   affected_row_count integer := 0;
+  cur_kpi1 cursor for select * from securities_kpis_1(start_year, end_year);
+  kpi1_rec record;
 begin
 perform drop_index_securities_kpi();
-insert into securities_kpi
-select
-  kpi1.code, kpi1."time",
-  kpi1.营业利润vs营业收入,
-  kpi1.净利润vs营业收入,
-  kpi1.净利润vs利润总额,
-  kpi1.净利润vs股东权益合计
-from securities_kpis_1(start_year, end_year) kpi1
-order by kpi1.code, kpi1."time"
-on conflict (code, "time") do update set
-  营业利润vs营业收入   = excluded.营业利润vs营业收入,
-  净利润vs营业收入     = excluded.净利润vs营业收入,
-  净利润vs利润总额     = excluded.净利润vs利润总额,
-  净利润vs股东权益合计 = excluded.净利润vs股东权益合计;
-get diagnostics affected_row_count = row_count;
+open cur_kpi1;
+loop
+  fetc  h cur_kpi1 into kpi1_rec;
+  exit when not found;
+  insert into securities_kpi (code, "time", 营业利润vs营业收入, 净利润vs营业收入, 净利润vs利润总额, 净利润vs股东权益合计)
+  values (kpi1_rec.code, kpi1_rec."time", kpi1_rec.营业利润vs营业收入, kpi1_rec.净利润vs营业收入, kpi1_rec.净利润vs利润总额, kpi1_rec.净利润vs股东权益合计)
+  on conflict (code, "time") do update set
+    营业利润vs营业收入   = excluded.营业利润vs营业收入,
+    净利润vs营业收入     = excluded.净利润vs营业收入,
+    净利润vs利润总额     = excluded.净利润vs利润总额,
+    净利润vs股东权益合计 = excluded.净利润vs股东权益合计;
+  affected_row_count = affected_row_count + 1;
+end loop;
+close cur_kpi1;
 perform create_index_securities_kpi();
 return affected_row_count;
 end;
@@ -458,43 +503,38 @@ drop function if exists insert_securities_kpis_2;
 create or replace function insert_securities_kpis_2(start_year integer, end_year integer) returns integer as $$
 declare
   affected_row_count integer := 0;
+  cur_kpi2 cursor for select * from securities_kpis_2(start_year, end_year);
+  kpi2_rec record;
 begin
 perform drop_index_securities_kpi();
-insert into securities_kpi
-select
-  kpi2.code, kpi2."time",
-  kpi2.营业收入同比,
-  kpi2.营业利润同比,
-  kpi2.净利润同比,
-  kpi2.营业收入环比,
-  kpi2.营业利润环比,
-  kpi2.净利润环比,
-  kpi2.经营活动产生的现金流量净额同比,
-  kpi2.投资活动产生的现金流量净额同比,
-  kpi2.筹资活动产生的现金流量净额同比,
-  kpi2.现金及现金等价物净增加额同比,
-  kpi2.经营活动产生的现金流量净额环比,
-  kpi2.投资活动产生的现金流量净额环比,
-  kpi2.筹资活动产生的现金流量净额环比,
-  kpi2.现金及现金等价物净增加额环比
-from securities_kpis_2(start_year, end_year) kpi2
-order by kpi2.code, kpi2."time"
-on conflict (code, "time") do update set
-  营业收入同比 = excluded.营业收入同比,
-  营业利润同比 = excluded.营业利润同比,
-  净利润同比   = excluded.净利润同比,
-  营业收入环比 = excluded.营业收入环比,
-  营业利润环比 = excluded.营业利润环比,
-  净利润环比   = excluded.净利润环比,
-  经营活动产生的现金流量净额同比 = excluded.经营活动产生的现金流量净额同比,
-  投资活动产生的现金流量净额同比 = excluded.投资活动产生的现金流量净额同比,
-  筹资活动产生的现金流量净额同比 = excluded.筹资活动产生的现金流量净额同比,
-  现金及现金等价物净增加额同比   = excluded.现金及现金等价物净增加额同比,
-  经营活动产生的现金流量净额环比 = excluded.经营活动产生的现金流量净额环比,
-  投资活动产生的现金流量净额环比 = excluded.投资活动产生的现金流量净额环比,
-  筹资活动产生的现金流量净额环比 = excluded.筹资活动产生的现金流量净额环比,
-  现金及现金等价物净增加额环比   = excluded.现金及现金等价物净增加额环比;
-get diagnostics affected_row_count = row_count;
+open cur_kpi2;
+loop
+  fetch cur_kpi2 into kpi2_rec;
+  exit when not found;
+  insert into securities_kpi (code, "time", 营业收入同比, 营业利润同比, 净利润同比, 营业收入环比, 营业利润环比, 净利润环比,
+    经营活动产生的现金流量净额同比, 投资活动产生的现金流量净额同比, 筹资活动产生的现金流量净额同比, 现金及现金等价物净增加额同比,
+    经营活动产生的现金流量净额环比, 投资活动产生的现金流量净额环比, 筹资活动产生的现金流量净额环比, 现金及现金等价物净增加额环比)
+  values (kpi2_rec.code, kpi2_rec."time", kpi2_rec.营业收入同比, kpi2_rec.营业利润同比, kpi2_rec.净利润同比, kpi2_rec.营业收入环比, kpi2_rec.营业利润环比, kpi2_rec.净利润环比,
+    kpi2_rec.经营活动产生的现金流量净额同比, kpi2_rec.投资活动产生的现金流量净额同比, kpi2_rec.筹资活动产生的现金流量净额同比, kpi2_rec.现金及现金等价物净增加额同比,
+    kpi2_rec.经营活动产生的现金流量净额环比, kpi2_rec.投资活动产生的现金流量净额环比, kpi2_rec.筹资活动产生的现金流量净额环比, kpi2_rec.现金及现金等价物净增加额环比)
+  on conflict (code, "time") do update set
+    营业收入同比 = excluded.营业收入同比,
+    营业利润同比 = excluded.营业利润同比,
+    净利润同比   = excluded.净利润同比,
+    营业收入环比 = excluded.营业收入环比,
+    营业利润环比 = excluded.营业利润环比,
+    净利润环比   = excluded.净利润环比,
+    经营活动产生的现金流量净额同比 = excluded.经营活动产生的现金流量净额同比,
+    投资活动产生的现金流量净额同比 = excluded.投资活动产生的现金流量净额同比,
+    筹资活动产生的现金流量净额同比 = excluded.筹资活动产生的现金流量净额同比,
+    现金及现金等价物净增加额同比   = excluded.现金及现金等价物净增加额同比,
+    经营活动产生的现金流量净额环比 = excluded.经营活动产生的现金流量净额环比,
+    投资活动产生的现金流量净额环比 = excluded.投资活动产生的现金流量净额环比,
+    筹资活动产生的现金流量净额环比 = excluded.筹资活动产生的现金流量净额环比,
+    现金及现金等价物净增加额环比   = excluded.现金及现金等价物净增加额环比;
+  affected_row_count = affected_row_count + 1;
+end loop;
+close cur_kpi2;
 perform create_index_securities_kpi();
 return affected_row_count;
 end;
