@@ -430,42 +430,42 @@ $$ language plpgsql;
 
 drop function if exists securities_kpis_3;
 create or replace function securities_kpis_3()
-returns table (code varchar(6),
+returns table (code varchar(6), "time" date,
                市值 numeric(20,2), 市盈率 numeric(10,4), 市净率 numeric(10,4),
                市盈率vs净利润增长率 numeric(10,4)) as $$
 begin
 return query
 select
   dq.code, dq."time",
-  dq.price * ss.总股本 * 10000.0 市值,
-  case when psrt.净利润 <> 0 then dq.price * ss.总股本 * 10000.0 / psrt.净利润 else null end 市盈率,
-  case when bs.股东权益合计 <> 0 then dq.price * ss.总股本 * 10000.0 / bs.股东权益合计 else null end 市净率,
-  case when psrt.净利润 <> 0 and kpi.净利润增长率 <> 0 then dq.price * ss.总股本 * 10000.0 / psrt.净利润 / kpi.净利润增长率 else null end 市盈率vs净利润增长率
+  round(dq.price * ss.总股本 * 10000.0, 2) 市值,
+  case when psrt.净利润 <> 0 then round(dq.price * ss.总股本 * 10000.0 / psrt.净利润, 4) else null end 市盈率,
+  case when bs.股东权益合计 <> 0 then round(dq.price * ss.总股本 * 10000.0 / bs.股东权益合计, 4) else null end 市净率,
+  case when psrt.净利润 <> 0 and kpi.净利润增长率 <> 0 then round(dq.price * ss.总股本 * 10000.0 / psrt.净利润 / kpi.净利润增长率, 4) else null end 市盈率vs净利润增长率
 from (
-  select code, "time", price from securities_day_quote where time = (select max(time) from securities_day_quote)) dq
+  select dq1.code, dq1."time", dq1.price from securities_day_quote dq1 where dq1.time = (select max(dq0.time) from securities_day_quote dq0)) dq
 join (
   select ss1.code, ss1.总股本 from securities_stock_structure ss1
-  join (select code, max(time) "time" from securities_stock_structure group by code) ss2 on ss1.code = ss2.code and ss1."time" = ss2."time"
+  join (select ss0.code, max(ss0.time) "time" from securities_stock_structure ss0 group by ss0.code) ss2 on ss1.code = ss2.code and ss1."time" = ss2."time"
 ) ss on dq.code = ss.code
 join (
   select psrt1.code, psrt1.净利润 from securities_profit_sheet_running_total psrt1
-  join (select code, max(time) "time" from securities_profit_sheet_running_total group by code) psrt2 on psrt1.code = psrt2.code and psrt1."time" = psrt2."time"
+  join (select psrt0.code, max(psrt0.time) "time" from securities_profit_sheet_running_total psrt0 group by psrt0.code) psrt2 on psrt1.code = psrt2.code and psrt1."time" = psrt2."time"
 ) psrt on dq.code = psrt.code
 join (
   select bsb1.code code, bsb1.股东权益合计 股东权益合计 from securities_balance_sheet_bank bsb1
-  join (select code, max(time) "time" from securities_balance_sheet_bank group by code) bsb2 on bsb1.code = bsb2.code and bsb1."time" = bsb2."time"
+  join (select bsb0.code, max(bsb0.time) "time" from securities_balance_sheet_bank bsb0 group by bsb0.code) bsb2 on bsb1.code = bsb2.code and bsb1."time" = bsb2."time"
   union
   select bsg1.code code, bsg1.所有者权益（或股东权益）合计 股东权益合计 from securities_balance_sheet_general bsg1
-  join (select code, max(time) "time" from securities_balance_sheet_general group by code) bsg2 on bsg1.code = bsg2.code and bsg1."time" = bsg2."time"
+  join (select bsg0.code, max(bsg0.time) "time" from securities_balance_sheet_general bsg0 group by bsg0.code) bsg2 on bsg1.code = bsg2.code and bsg1."time" = bsg2."time"
   union
   select bss1.code code, bss1.所有者权益合计 股东权益合计 from securities_balance_sheet_securities bss1
-  join (select code, max(time) "time" from securities_balance_sheet_securities group by code) bss2 on bss1.code = bss2.code and bss1."time" = bss2."time"
+  join (select bss0.code, max(bss0.time) "time" from securities_balance_sheet_securities bss0 group by bss0.code) bss2 on bss1.code = bss2.code and bss1."time" = bss2."time"
   union
   select bsi1.code code, bsi1.所有者权益合计 股东权益合计 from securities_balance_sheet_insurance bsi1
-  join (select code, max(time) "time" from securities_balance_sheet_insurance group by code) bsi2 on bsi1.code = bsi2.code and bsi1."time" = bsi2."time"
+  join (select bsi0.code, max(bsi0.time) "time" from securities_balance_sheet_insurance bsi0 group by bsi0.code) bsi2 on bsi1.code = bsi2.code and bsi1."time" = bsi2."time"
 ) bs on dq.code = bs.code
 join (
-select k.code, avg(k.净利润同比) 净利润增长率 from (select code, 净利润同比, row_number() over (partition by code order by "time" desc) row_num from securities_kpi) k
+  select k.code, avg(k.净利润同比) 净利润增长率 from (select k0.code, 净利润同比, row_number() over (partition by k0.code order by k0."time" desc) row_num from securities_kpi k0) k
   where k.row_num < 5
   group by k.code
 ) kpi on dq.code = kpi.code;
