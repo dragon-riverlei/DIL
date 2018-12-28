@@ -438,9 +438,9 @@ return query
 select
   dq.code, dq."time",
   round(dq.price * ss.总股本 * 10000.0, 2) 市值,
-  case when psrt.净利润 <> 0 then round(dq.price * ss.总股本 * 10000.0 / psrt.净利润, 4) else null end 市盈率,
-  case when bs.股东权益合计 <> 0 then round(dq.price * ss.总股本 * 10000.0 / bs.股东权益合计, 4) else null end 市净率,
-  case when psrt.净利润 <> 0 and kpi.净利润增长率 <> 0 then round(dq.price * ss.总股本 * 10000.0 / psrt.净利润 / kpi.净利润增长率, 4) else null end 市盈率vs净利润增长率
+  case when psrt.归属于母公司股东的净利润 <> 0 then round(dq.price * ss.总股本 * 10000.0 / psrt.归属于母公司股东的净利润, 4) else null end 市盈率,
+  case when bs.归属于母公司股东的权益 <> 0 then round(dq.price * ss.总股本 * 10000.0 / bs.归属于母公司股东的权益, 4) else null end 市净率,
+  case when psrt.归属于母公司股东的净利润 <> 0 and kpi.净利润增长率 <> 0 then round(dq.price * ss.总股本 * 10000.0 / psrt.归属于母公司股东的净利润 / kpi.净利润增长率, 4) else null end 市盈率vs净利润增长率
 from (
   select dq1.code, dq1."time", dq1.price from securities_day_quote dq1 where dq1.time = (select max(dq0.time) from securities_day_quote dq0)) dq
 join (
@@ -448,20 +448,20 @@ join (
   join (select ss0.code, max(ss0.time) "time" from securities_stock_structure ss0 group by ss0.code) ss2 on ss1.code = ss2.code and ss1."time" = ss2."time"
 ) ss on dq.code = ss.code
 join (
-  select psrt1.code, psrt1.净利润 from securities_profit_sheet_running_total psrt1
+  select psrt1.code, psrt1.归属于母公司股东的净利润 from securities_profit_sheet_running_total psrt1
   join (select psrt0.code, max(psrt0.time) "time" from securities_profit_sheet_running_total psrt0 group by psrt0.code) psrt2 on psrt1.code = psrt2.code and psrt1."time" = psrt2."time"
 ) psrt on dq.code = psrt.code
 join (
-  select bsb1.code code, bsb1.股东权益合计 股东权益合计 from securities_balance_sheet_bank bsb1
+  select bsb1.code code, bsb1.归属于母公司股东的权益 归属于母公司股东的权益 from securities_balance_sheet_bank bsb1
   join (select bsb0.code, max(bsb0.time) "time" from securities_balance_sheet_bank bsb0 group by bsb0.code) bsb2 on bsb1.code = bsb2.code and bsb1."time" = bsb2."time"
   union
-  select bsg1.code code, bsg1.所有者权益（或股东权益）合计 股东权益合计 from securities_balance_sheet_general bsg1
+  select bsg1.code code, bsg1.归属于母公司股东权益合计 归属于母公司股东的权益 from securities_balance_sheet_general bsg1
   join (select bsg0.code, max(bsg0.time) "time" from securities_balance_sheet_general bsg0 group by bsg0.code) bsg2 on bsg1.code = bsg2.code and bsg1."time" = bsg2."time"
   union
-  select bss1.code code, bss1.所有者权益合计 股东权益合计 from securities_balance_sheet_securities bss1
+  select bss1.code code, bss1.归属于母公司所有者权益合计 归属于母公司股东的权益 from securities_balance_sheet_securities bss1
   join (select bss0.code, max(bss0.time) "time" from securities_balance_sheet_securities bss0 group by bss0.code) bss2 on bss1.code = bss2.code and bss1."time" = bss2."time"
   union
-  select bsi1.code code, bsi1.所有者权益合计 股东权益合计 from securities_balance_sheet_insurance bsi1
+  select bsi1.code code, bsi1.归属于母公司的股东权益合计 归属于母公司股东的权益 from securities_balance_sheet_insurance bsi1
   join (select bsi0.code, max(bsi0.time) "time" from securities_balance_sheet_insurance bsi0 group by bsi0.code) bsi2 on bsi1.code = bsi2.code and bsi1."time" = bsi2."time"
 ) bs on dq.code = bs.code
 join (
@@ -476,13 +476,13 @@ drop function if exists insert_securities_kpis_1;
 create or replace function insert_securities_kpis_1(start_year integer, end_year integer) returns integer as $$
 declare
   affected_row_count integer := 0;
-  cur_kpi1 cursor for select * from securities_kpis_1(start_year, end_year);
+  kpi1_cur cursor for select * from securities_kpis_1(start_year, end_year);
   kpi1_rec record;
 begin
 perform drop_index_securities_kpi();
-open cur_kpi1;
+open kpi1_cur;
 loop
-  fetc  h cur_kpi1 into kpi1_rec;
+  fetch kpi1_cur into kpi1_rec;
   exit when not found;
   insert into securities_kpi (code, "time", 营业利润vs营业收入, 净利润vs营业收入, 净利润vs利润总额, 净利润vs股东权益合计)
   values (kpi1_rec.code, kpi1_rec."time", kpi1_rec.营业利润vs营业收入, kpi1_rec.净利润vs营业收入, kpi1_rec.净利润vs利润总额, kpi1_rec.净利润vs股东权益合计)
@@ -493,7 +493,7 @@ loop
     净利润vs股东权益合计 = excluded.净利润vs股东权益合计;
   affected_row_count = affected_row_count + 1;
 end loop;
-close cur_kpi1;
+close kpi1_cur;
 perform create_index_securities_kpi();
 return affected_row_count;
 end;
@@ -503,13 +503,13 @@ drop function if exists insert_securities_kpis_2;
 create or replace function insert_securities_kpis_2(start_year integer, end_year integer) returns integer as $$
 declare
   affected_row_count integer := 0;
-  cur_kpi2 cursor for select * from securities_kpis_2(start_year, end_year);
+  kpi2_cur cursor for select * from securities_kpis_2(start_year, end_year);
   kpi2_rec record;
 begin
 perform drop_index_securities_kpi();
-open cur_kpi2;
+open kpi2_cur;
 loop
-  fetch cur_kpi2 into kpi2_rec;
+  fetch kpi2_cur into kpi2_rec;
   exit when not found;
   insert into securities_kpi (code, "time", 营业收入同比, 营业利润同比, 净利润同比, 营业收入环比, 营业利润环比, 净利润环比,
     经营活动产生的现金流量净额同比, 投资活动产生的现金流量净额同比, 筹资活动产生的现金流量净额同比, 现金及现金等价物净增加额同比,
@@ -534,7 +534,34 @@ loop
     现金及现金等价物净增加额环比   = excluded.现金及现金等价物净增加额环比;
   affected_row_count = affected_row_count + 1;
 end loop;
-close cur_kpi2;
+close kpi2_cur;
+perform create_index_securities_kpi();
+return affected_row_count;
+end;
+$$ language plpgsql;
+
+drop function if exists insert_securities_kpis_3;
+create or replace function insert_securities_kpis_3() returns integer as $$
+declare
+  affected_row_count integer := 0;
+  kpi3_cur cursor for select * from securities_kpis_3();
+  kpi3_rec record;
+begin
+perform drop_index_securities_kpi();
+open kpi3_cur;
+loop
+  fetch kpi3_cur into kpi3_rec;
+  exit when not found;
+  insert into securities_kpi (code, "time", 市值, 市盈率, 市净率, 市盈率vs净利润增长率)
+  values (kpi3_rec.code, kpi3_rec."time", kpi3_rec.市值, kpi3_rec.市盈率, kpi3_rec.市净率, kpi3_rec.市盈率vs净利润增长率)
+  on conflict (code, "time") do update set
+    营业利润vs营业收入   = excluded.营业利润vs营业收入,
+    净利润vs营业收入     = excluded.净利润vs营业收入,
+    净利润vs利润总额     = excluded.净利润vs利润总额,
+    净利润vs股东权益合计 = excluded.净利润vs股东权益合计;
+  affected_row_count = affected_row_count + 1;
+end loop;
+close kpi3_cur;
 perform create_index_securities_kpi();
 return affected_row_count;
 end;

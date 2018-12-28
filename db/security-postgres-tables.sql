@@ -872,6 +872,7 @@ create table if not exists securities_profit_sheet_running_total (
   营业利润 numeric(20,2), -- 三、营业利润
   利润总额 numeric(20,2), -- 四、利润总额
   净利润 numeric(20,2), -- 五、净利润
+  归属于母公司股东的净利润 numeric(20,2),
   primary key (code, time)
 );
 
