@@ -75,9 +75,7 @@
 ***** Stage 1: scrape, clean, validate
 ****** 1st: scrape initial regular reports (balance, cash flow and profit)
        The following 3 spiders scrape initial regular reports of balance, cash flow and profit for the list of stock codes determined
-       by the output of [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]]. This bash script calls [[file:sh/find_stock_list_china_with_absence_regular_report.sh][find_stock_list_china_with_absence_regular_report.sh]]
-       to find out list of codes that don't have initial regular reports for the given time (a sign of market exit)
-       and exclude these codes from being scraped.
+       by the output of [[file:sh/find_regular_report_not_scraped.sh][find_regular_report_not_scraped.sh]].
 
        - [[file:crawl/crawl/spiders/securities/china/StockFdmtBalanceSheetChinaInitialSpider.py][StockFdmtBalanceSheetChinaInitialSpider]]
        - [[file:crawl/crawl/spiders/securities/china/StockFdmtCashflowSheetChinaInitialSpider.py][StockFdmtCashflowSheetChinaInitialSpider]] 

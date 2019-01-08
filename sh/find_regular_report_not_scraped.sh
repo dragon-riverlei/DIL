@@ -68,8 +68,6 @@ do
         echo $code
     fi
 done > "$subfolder"/code_missed
-sh/find_stock_list_china_with_absence_regular_report.sh > "$subfolder"/code_with_absent_regular_report
-cat "$subfolder"/code_missed "$subfolder"/code_with_absent_regular_report "$subfolder"/code_with_absent_regular_report | sort | uniq -u
+cat "$subfolder"/code_missed | sort | uniq
 
 rm "$subfolder"/code_missed
-rm "$subfolder"/code_with_absent_regular_report

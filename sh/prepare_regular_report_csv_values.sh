@@ -87,18 +87,14 @@ function do_initial(){
 }
 
 function do_delta(){
-    "$DIL_ROOT"/sh/find_stock_list_china_with_absence_regular_report.sh > "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes_to_exclude
-    cat "$schema_lst" \
-        "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes_to_exclude \
-        "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes_to_exclude \
-        | sort | uniq -u > "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes
-
+    cat "$schema_lst" | sort | uniq > "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes
     mkdir "$DIL_ROOT"/"$subfolder"/dbdata
     for code in $(cat "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes)
     do
         jq -r --arg code "$code" -f "$jqf" "$DIL_ROOT"/"$subfolder"/data/"$code"_$1.jl > "$DIL_ROOT"/"$subfolder"/dbdata/"$code"_$1.csv
     done
     rm "$jqf"
+    rm "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes
 }
 
 case "$suffix" in

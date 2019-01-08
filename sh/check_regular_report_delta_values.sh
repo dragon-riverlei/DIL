@@ -71,15 +71,9 @@ jqf="$DIL_ROOT"/tmp/check_regular_report_delta_values_"$report_type"_"$2".jq
 
 cat "$schema_lst" | sort | uniq > "$DIL_ROOT"/"$subfolder"/code_list
 
-"$DIL_ROOT"/sh/find_stock_list_china_with_absence_regular_report.sh > "$DIL_ROOT"/"$subfolder"/code_with_absent_regular_report
-
 cat "$DIL_ROOT"/"$subfolder"/code_list \
-    "$DIL_ROOT"/"$subfolder"/code_with_absent_regular_report \
-    "$DIL_ROOT"/"$subfolder"/code_with_absent_regular_report \
-| sort | uniq -u \
 | awk -v folder="$DIL_ROOT" -v subfolder="$subfolder" -v year="$3" '{print folder "/" subfolder "/data/" $0 "_" year ".jl"}' \
 | xargs jq -r -f "$jqf" | awk -F "," '{for (i=1; i<=NF; i++){print $i}}' | gsort -u
 
 rm "$DIL_ROOT"/"$subfolder"/code_list
-rm "$DIL_ROOT"/"$subfolder"/code_with_absent_regular_report
 rm "$jqf"

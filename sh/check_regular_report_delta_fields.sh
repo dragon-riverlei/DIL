@@ -69,11 +69,7 @@ if [ "$3" == "" ];then
     usage
 fi
 
-"$DIL_ROOT"/sh/find_stock_list_china_with_absence_regular_report.sh > "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes_to_exclude
-cat "$schema_lst" \
-    "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes_to_exclude \
-    "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes_to_exclude \
-    | sort | uniq -u > "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes
+cat "$schema_lst" | sort | uniq -u > "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes
 
 "$DIL_ROOT"/sh/print_regular_report_fields.sh $1 $2 plain | \
     "$DIL_ROOT"/sh/check_regular_report_delta_fields_filter.sh $1 $2 | sort > "$DIL_ROOT"/tmp/print_regular_report_fields_filtered_out
@@ -85,6 +81,5 @@ do
         | uniq -u
 done | sort | uniq
 
-rm "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes_to_exclude
 rm "$DIL_ROOT"/tmp/check_regular_report_delta_fields_codes
 rm "$DIL_ROOT"/tmp/print_regular_report_fields_filtered_out
