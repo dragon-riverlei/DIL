@@ -14,5 +14,5 @@ usage(){
 cd "$DIL_ROOT"
 cd feeds/stock_structure/data
 
-ls | sed 's/.jl//g' | xargs -P 4 -I '{}' jq --arg code _{} -r '.Result.ShareChangeList[]? | .changeList | length | tostring + $code' {}.jl > "$DIL_ROOT"/tmp/check_regular_stock_structure_values_codes
+ls | sed 's/.jl//g' | xargs -P 4 -I '{}' jq --arg code _{} -r '.ShareChangeList[]? | .changeList | length | tostring + $code' {}.jl > "$DIL_ROOT"/tmp/check_regular_stock_structure_values_codes
 cat "$DIL_ROOT"/tmp/check_regular_stock_structure_values_codes | sort | uniq | awk -F "_" '{print $2}' | sort | uniq -c | awk '$1!="1" {print $2}'

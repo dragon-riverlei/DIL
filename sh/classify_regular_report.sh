@@ -58,9 +58,9 @@ EOF
     elif [ "$1" == "stock_struct" ];then
         # for f in $(ls *.jl);do
         #     name=${f%%.jl}
-        #     cat "$f" | jq -r '.Result.ShareChangeList[].des'	> ../fields/"$name"
+        #     cat "$f" | jq -r '.ShareChangeList[].des'	> ../fields/"$name"
         # done
-        ls *.jl | sed 's/\.jl//g' | xargs -P 4 -I 'code' sh -c 'jq -r ".Result.ShareChangeList[].des" code.jl > ../fields/code'
+        ls *.jl | sed 's/\.jl//g' | xargs -P 4 -I 'code' sh -c 'jq -r ".ShareChangeList[].des" code.jl > ../fields/code'
     else
         usage
     fi
