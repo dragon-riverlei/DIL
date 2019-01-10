@@ -25,7 +25,7 @@ load_stock_list_china(){
 \x
 create temp table tmp_table as select * from "$table" with no data;
 copy tmp_table from '$DIL_ROOT/feeds/$csv_file' with delimiter as ',' csv;
-insert into "$table" select * from tmp_table on conflict do nothing;
+insert into "$table" select * from tmp_table where code not in (select code from "$table");
 EOF
     rm "$DIL_ROOT"/feeds/"$csv_file"
 }
@@ -38,7 +38,7 @@ load_stock_day_quote_china(){
 \x
 create temp table tmp_table as select * from "$table" with no data;
 copy tmp_table from '$DIL_ROOT/feeds/$csv_file' with delimiter as ',' csv;
-insert into "$table" select * from tmp_table on conflict do nothing;
+insert into "$table" select * from tmp_table where (code, time) not in (select code, time from "$table");
 EOF
     rm "$DIL_ROOT"/feeds/"$csv_file"
 }
@@ -52,7 +52,7 @@ load_stock_dividend_china(){
 \x
 create temp table tmp_table as select * from "$table" with no data;
 copy tmp_table from '$csv_file' with delimiter as ',' NULL as 'NULL' csv;
-insert into "$table" select * from tmp_table on conflict do nothing;
+insert into "$table" select * from tmp_table where (code, time) not in (select code, time from "$table");
 EOF
     rm "$csv_file"
 }
@@ -65,7 +65,7 @@ load_stock_ipo_info_china(){
 \x
 create temp table tmp_table as select * from "$table" with no data;
 copy tmp_table from '$DIL_ROOT/feeds/$csv_file' with delimiter as ',' NULL as 'NULL' csv;
-insert into "$table" select * from tmp_table on conflict do nothing;
+insert into "$table" select * from tmp_table where code not in (select code from "$table");
 EOF
     rm "$DIL_ROOT"/feeds/"$csv_file"
 }
@@ -84,17 +84,28 @@ load_stock_structure_china(){
 \x
 create temp table tmp_table as select * from "$table" with no data;
 copy tmp_table from '$1' with delimiter as ',' NULL as '' csv;
-insert into "$table" select * from tmp_table on conflict do nothing;
+insert into "$table" select * from tmp_table where (code, time) not in (select code, time from "$table");
 EOF
 }
 
 load_all_stock_structure_china(){
     local subfolder="feeds/stock_structure/dbdata"
     cd $DIL_ROOT/$subfolder
+    rm -f data.csv
     for f in `ls`
     do
-        load_stock_structure_china "$DIL_ROOT/$subfolder/$f"
+        cat "$DIL_ROOT/$subfolder/$f" >> data.csv
     done
+
+    local table="securities_stock_structure"
+    psql "$db" <<EOF
+\x
+create temp table tmp_table as select * from "$table" with no data;
+create table tmp_table as select * from "$table" with no data;
+copy tmp_table from '$DIL_ROOT/$subfolder/data.csv' with delimiter as ',' NULL as '' csv;
+insert into "$table" select * from tmp_table where (code, time) not in (select code, time from "$table");
+EOF
+    rm data.csv
 }
 
 case "$1" in
