@@ -5,6 +5,7 @@
 
 # Example:
 # scrapy crawl StockStructureChinaSpider
+# scrapy crawl StockStructureChinaSpider -a codes=000001,000002
 
 from datetime import date
 
@@ -36,18 +37,25 @@ class StockStructureChinaSpider(scrapy.Spider):
 
     def start_requests(self):
         self.logger.info("Start to scrape stock structure china...")
-        cmd = subprocess.Popen(
-            args=[
-                DIL_ROOT +
-                '/sh/find_regular_report_not_scraped_stock_structure.sh'
-            ],
-            stdout=subprocess.PIPE)
-        out, err = cmd.communicate()
-        missings = out.split('\n')
-        for missing in missings:
-            if len(missing) > 0:
-                url = self.url_tpl.format(missing)
-                yield scrapy.Request(url=url, callback=self.parse)
+        if self.codes == "":
+            cmd = subprocess.Popen(
+                args=[
+                    DIL_ROOT +
+                    '/sh/find_regular_report_not_scraped_stock_structure.sh'
+                ],
+                stdout=subprocess.PIPE)
+            out, err = cmd.communicate()
+            missings = out.split('\n')
+            for missing in missings:
+                if len(missing) > 0:
+                    url = self.url_tpl.format(missing)
+                    yield scrapy.Request(url=url, callback=self.parse)
+        else:
+            self.logger.info("Code list: " + self.codes)
+            for code in self.codes.split(","):
+                if len(code) > 0:
+                    url = self.url_tpl.format(code)
+                    yield scrapy.Request(url=url, callback=self.parse)
 
     def parse(self, response):
         match = self.code_rexp.match(response.request.url)
