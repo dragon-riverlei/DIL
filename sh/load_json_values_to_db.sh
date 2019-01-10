@@ -102,7 +102,6 @@ load_all_stock_structure_china(){
     psql "$db" <<EOF
 \x
 create temp table tmp_table as select * from "$table" with no data;
-create table tmp_table as select * from "$table" with no data;
 copy tmp_table from '$DIL_ROOT/$subfolder/data.csv' with delimiter as ',' NULL as '' csv;
 insert into "$table" select * from tmp_table where (code, time) not in (select code, time from "$table");
 EOF
