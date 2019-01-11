@@ -472,6 +472,67 @@ join (
 end;
 $$ language plpgsql;
 
+drop function if exists check_securities_kpis_3_cap;
+create or replace function check_securities_kpis_3_cap()
+returns table (code varchar(6), "time" date,
+               cap_kpi3 numeric(20,2), cap_dq numeric(20,2), cap_diff numeric(20,2), cap_diff_percent numeric(10,2)) as $$
+begin
+return query
+select * from (
+  select
+    dq.code, dq.time,
+    round(kpis3.市值,-6) cap_kpi3, dq.cap cap_dq,
+    round(kpis3.市值,-6) - dq.cap cap_diff,
+    case when round(kpis3.市值,-6) = 0 then 100.0 else round((round(kpis3.市值,-6) - dq.cap) / round(kpis3.市值,-6) * 100, 2) end cap_diff_percent
+  from securities_kpis_3() kpis3
+  join securities_day_quote dq on kpis3.code = dq.code and kpis3.time = dq.time
+  where dq.code in (select distinct psrt.code from securities_profit_sheet_running_total psrt)
+  order by dq.code) t
+where t.cap_diff <> 0;
+end;
+$$ language plpgsql;
+
+drop function if exists check_securities_kpis_3_per;
+create or replace function check_securities_kpis_3_per()
+returns table (code varchar(6), "time" date,
+              per_kpi3 numeric(10,4), per_dq numeric(10,4), per_diff numeric(10,4), per_diff_percent numeric(10,2)) as $$
+begin
+return query
+select * from (
+  select
+    dq.code, dq.time,
+    round(kpis3.市盈率,2) per_kpi3, round(dq.per,2) per_dq,
+    round(kpis3.市盈率,2) - round(dq.per,2) per_diff,
+    case when round(kpis3.市盈率,2) = 0 then 100.0 else round((round(kpis3.市盈率,2) - round(dq.per,2)) / round(kpis3.市盈率,2) * 100, 2) end per_diff_percent
+    from securities_kpis_3() kpis3
+    join securities_day_quote dq on kpis3.code = dq.code and kpis3.time = dq.time
+    where dq.code in (select distinct psrt.code from securities_profit_sheet_running_total psrt)
+    order by dq.code) t
+where t.per_diff_percent >= 1.0;
+end;
+$$ language plpgsql;
+
+drop function if exists check_securities_kpis_3_pbr;
+create or replace function check_securities_kpis_3_pbr()
+returns table (code varchar(6), "time" date,
+               pbr_kpi3 numeric(10,4), pbr_dq numeric(10,4), pbr_diff numeric(10,4), pbr_diff_percent numeric(10,2)) as $$
+begin
+return query
+select * from (
+  select
+    dq.code, dq.time,
+    round(kpis3.市净率,2) pbr_kpi3, round(dq.pbr,2) pbr_dq,
+    round(kpis3.市净率,2) - round(dq.pbr,2) pbr_diff,
+    case when round(kpis3.市净率,2) = 0 then 100.0 else round((round(kpis3.市净率,2) - round(dq.pbr,2)) / round(kpis3.市净率,2) * 100, 2) end pbr_diff_percent
+    from securities_kpis_3() kpis3
+            join securities_day_quote dq on kpis3.code = dq.code and kpis3.time = dq.time
+    where dq.code in (select distinct psrt.code from securities_profit_sheet_running_total psrt)
+    order by dq.code) t
+where t.pbr_diff_percent >= 1.0;
+end;
+$$ language plpgsql;
+
+
 drop function if exists insert_securities_kpis_1;
 create or replace function insert_securities_kpis_1(start_year integer, end_year integer) returns integer as $$
 declare
