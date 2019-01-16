@@ -432,7 +432,9 @@ drop function if exists securities_kpis_3;
 create or replace function securities_kpis_3()
 returns table (code varchar(6), "time" date,
                市值 numeric(20,2), 市盈率 numeric(10,4), 市净率 numeric(10,4),
-               市盈率vs净利润增长率 numeric(10,4)) as $$
+               市盈率vs净利润增长率 numeric(10,4),
+               净利润连续五年增长率 text, 净利润增长率 numeric(10,2), 净利润增长率波动率 numeric(10,2)
+               ) as $$
 begin
 return query
 select
@@ -440,7 +442,8 @@ select
   round(dq.price * ss.总股本 * 10000.0, 2) 市值,
   case when psrt.归属于母公司股东的净利润 <> 0 then round(dq.price * ss.总股本 * 10000.0 / psrt.归属于母公司股东的净利润, 4) else null end 市盈率,
   case when bs.归属于母公司股东的权益 <> 0 then round(dq.price * ss.总股本 * 10000.0 / bs.归属于母公司股东的权益, 4) else null end 市净率,
-  case when psrt.归属于母公司股东的净利润 <> 0 and kpi.净利润增长率 <> 0 then round(dq.price * ss.总股本 * 10000.0 / psrt.归属于母公司股东的净利润 / kpi.净利润增长率, 4) else null end 市盈率vs净利润增长率
+  case when psrt.归属于母公司股东的净利润 <> 0 and kpi.净利润增长率 <> 0 then round(dq.price * ss.总股本 * 10000.0 / psrt.归属于母公司股东的净利润 / kpi.净利润增长率, 4) else null end 市盈率vs净利润增长率,
+  kk.净利润连续五年增长率, round(kpi.净利润增长率,2), round(kpi.净利润增长率波动率,2)
 from (
   select dq1.code, dq1."time", dq1.price from securities_day_quote dq1 where dq1.time = (select max(dq0.time) from securities_day_quote dq0)) dq
 join (
@@ -465,10 +468,17 @@ join (
   join (select bsi0.code, max(bsi0.time) "time" from securities_balance_sheet_insurance bsi0 group by bsi0.code) bsi2 on bsi1.code = bsi2.code and bsi1."time" = bsi2."time"
 ) bs on dq.code = bs.code
 join (
-  select k.code, avg(k.净利润同比) 净利润增长率 from (select k0.code, 净利润同比, row_number() over (partition by k0.code order by k0."time" desc) row_num from securities_kpi k0) k
+  select k.code, avg(k.净利润同比) 净利润增长率, stddev(k.净利润同比) / avg(k.净利润同比) * 100 净利润增长率波动率 from (select k0.code, 净利润同比, row_number() over (partition by k0.code order by k0."time" desc) row_num from securities_kpi k0) k
   where k.row_num < 5
   group by k.code
-) kpi on dq.code = kpi.code;
+) kpi on dq.code = kpi.code
+join (
+    select kk1.code, array_to_string(array_agg(kk1.净利润同比), ' | ') 净利润连续五年增长率 from
+      (select kk0.code, kk0.time, round(kk0.净利润同比,2) 净利润同比 from securities_kpi kk0
+       where kk0."time" < now() and extract(month from kk0."time") = 12 and extract(year from kk0."time") >= extract(year from now()) - 5
+       order by kk0.code, kk0.time desc) kk1
+    group by kk1.code
+) kk on dq.code = kk.code;
 end;
 $$ language plpgsql;
 
