@@ -283,8 +283,8 @@ returns table (fcwiml_code varchar(6), fcwiml_name varchar(10)) as $$
   end;
 $$ language plpgsql;
 
-drop function if exists securities_kpis_1;
-create or replace function securities_kpis_1(start_year integer, end_year integer)
+drop function if exists securities_kpi_c1;
+create or replace function securities_kpi_c1(start_year integer, end_year integer)
 returns table (code varchar(6), "time" date,
                营业利润vs营业收入 numeric(20,4), 净利润vs营业收入     numeric(20,4),
                净利润vs利润总额   numeric(20,4), 净利润vs股东权益合计 numeric(20,4)) as $$
@@ -332,8 +332,8 @@ where extract(year from psrt."time") between start_year and end_year;
 end;
 $$ language plpgsql;
 
-drop function if exists securities_kpis_2;
-create or replace function securities_kpis_2(start_year integer, end_year integer)
+drop function if exists securities_kpi_c2;
+create or replace function securities_kpi_c2(start_year integer, end_year integer)
 returns table (code varchar(6), "time" date,
                营业收入同比 numeric(20,4),
                营业利润同比 numeric(20,4),
@@ -428,8 +428,8 @@ where extract(year from psrt1."time") between start_year and end_year;
 end;
 $$ language plpgsql;
 
-drop function if exists securities_kpis_3;
-create or replace function securities_kpis_3()
+drop function if exists securities_kpi_c3;
+create or replace function securities_kpi_c3()
 returns table (code varchar(6), "time" date,
                市值 numeric(20,2), 市盈率 numeric(10,4), 市净率 numeric(10,4),
                市盈率vs净利润增长率 numeric(10,4),
@@ -496,60 +496,60 @@ join (
 end;
 $$ language plpgsql;
 
-drop function if exists check_securities_kpis_3_cap;
-create or replace function check_securities_kpis_3_cap()
+drop function if exists check_securities_kpi_c3_cap;
+create or replace function check_securities_kpi_c3_cap()
 returns table (code varchar(6), "time" date,
-               cap_kpi3 numeric(20,2), cap_dq numeric(20,2), cap_diff numeric(20,2), cap_diff_percent numeric(10,2)) as $$
+               cap_kpi_c3 numeric(20,2), cap_dq numeric(20,2), cap_diff numeric(20,2), cap_diff_percent numeric(10,2)) as $$
 begin
 return query
 select * from (
   select
     dq.code, dq.time,
-    round(kpis3.市值,-6) cap_kpi3, dq.cap cap_dq,
-    round(kpis3.市值,-6) - dq.cap cap_diff,
-    case when round(kpis3.市值,-6) = 0 then 100.0 else round((round(kpis3.市值,-6) - dq.cap) / round(kpis3.市值,-6) * 100, 2) end cap_diff_percent
-  from securities_kpis_3() kpis3
-  join securities_day_quote dq on kpis3.code = dq.code and kpis3.time = dq.time
+    round(kpi_c3.市值,-6) cap_kpi_c3, dq.cap cap_dq,
+    round(kpi_c3.市值,-6) - dq.cap cap_diff,
+    case when round(kpi_c3.市值,-6) = 0 then 100.0 else round((round(kpi_c3.市值,-6) - dq.cap) / round(kpi_c3.市值,-6) * 100, 2) end cap_diff_percent
+  from securities_kpi_c3() kpi_c3
+  join securities_day_quote dq on kpi_c3.code = dq.code and kpi_c3.time = dq.time
   where dq.code in (select distinct psrt.code from securities_profit_sheet_running_total psrt)
   order by dq.code) t
 where t.cap_diff <> 0;
 end;
 $$ language plpgsql;
 
-drop function if exists check_securities_kpis_3_per;
-create or replace function check_securities_kpis_3_per()
+drop function if exists check_securities_kpi_c3_per;
+create or replace function check_securities_kpi_c3_per()
 returns table (code varchar(6), "time" date,
-              per_kpi3 numeric(10,4), per_dq numeric(10,4), per_diff numeric(10,4), per_diff_percent numeric(10,2)) as $$
+              per_kpi_c3 numeric(10,4), per_dq numeric(10,4), per_diff numeric(10,4), per_diff_percent numeric(10,2)) as $$
 begin
 return query
 select * from (
   select
     dq.code, dq.time,
-    round(kpis3.市盈率,2) per_kpi3, round(dq.per,2) per_dq,
-    round(kpis3.市盈率,2) - round(dq.per,2) per_diff,
-    case when round(kpis3.市盈率,2) = 0 then 100.0 else round((round(kpis3.市盈率,2) - round(dq.per,2)) / round(kpis3.市盈率,2) * 100, 2) end per_diff_percent
-    from securities_kpis_3() kpis3
-    join securities_day_quote dq on kpis3.code = dq.code and kpis3.time = dq.time
+    round(kpi_c3.市盈率,2) per_kpi_c3, round(dq.per,2) per_dq,
+    round(kpi_c3.市盈率,2) - round(dq.per,2) per_diff,
+    case when round(kpi_c3.市盈率,2) = 0 then 100.0 else round((round(kpi_c3.市盈率,2) - round(dq.per,2)) / round(kpi_c3.市盈率,2) * 100, 2) end per_diff_percent
+    from securities_kpi_c3() kpi_c3
+    join securities_day_quote dq on kpi_c3.code = dq.code and kpi_c3.time = dq.time
     where dq.code in (select distinct psrt.code from securities_profit_sheet_running_total psrt)
     order by dq.code) t
 where t.per_diff_percent >= 1.0;
 end;
 $$ language plpgsql;
 
-drop function if exists check_securities_kpis_3_pbr;
-create or replace function check_securities_kpis_3_pbr()
+drop function if exists check_securities_kpi_c3_pbr;
+create or replace function check_securities_kpi_c3_pbr()
 returns table (code varchar(6), "time" date,
-               pbr_kpi3 numeric(10,4), pbr_dq numeric(10,4), pbr_diff numeric(10,4), pbr_diff_percent numeric(10,2)) as $$
+               pbr_kpi_c3 numeric(10,4), pbr_dq numeric(10,4), pbr_diff numeric(10,4), pbr_diff_percent numeric(10,2)) as $$
 begin
 return query
 select * from (
   select
     dq.code, dq.time,
-    round(kpis3.市净率,2) pbr_kpi3, round(dq.pbr,2) pbr_dq,
-    round(kpis3.市净率,2) - round(dq.pbr,2) pbr_diff,
-    case when round(kpis3.市净率,2) = 0 then 100.0 else round((round(kpis3.市净率,2) - round(dq.pbr,2)) / round(kpis3.市净率,2) * 100, 2) end pbr_diff_percent
-    from securities_kpis_3() kpis3
-            join securities_day_quote dq on kpis3.code = dq.code and kpis3.time = dq.time
+    round(kpi_c3.市净率,2) pbr_kpi_c3, round(dq.pbr,2) pbr_dq,
+    round(kpi_c3.市净率,2) - round(dq.pbr,2) pbr_diff,
+    case when round(kpi_c3.市净率,2) = 0 then 100.0 else round((round(kpi_c3.市净率,2) - round(dq.pbr,2)) / round(kpi_c3.市净率,2) * 100, 2) end pbr_diff_percent
+    from securities_kpi_c3() kpi_c3
+            join securities_day_quote dq on kpi_c3.code = dq.code and kpi_c3.time = dq.time
     where dq.code in (select distinct psrt.code from securities_profit_sheet_running_total psrt)
     order by dq.code) t
 where t.pbr_diff_percent >= 1.0;
@@ -557,20 +557,20 @@ end;
 $$ language plpgsql;
 
 
-drop function if exists insert_securities_kpis_1;
-create or replace function insert_securities_kpis_1(start_year integer, end_year integer) returns integer as $$
+drop function if exists insert_securities_kpi_c1;
+create or replace function insert_securities_kpi_c1(start_year integer, end_year integer) returns integer as $$
 declare
   affected_row_count integer := 0;
-  kpi1_cur cursor for select * from securities_kpis_1(start_year, end_year);
-  kpi1_rec record;
+  kpi_c1_cur cursor for select * from securities_kpi_c1(start_year, end_year);
+  kpi_c1_rec record;
 begin
 perform drop_index_securities_kpi();
-open kpi1_cur;
+open kpi_c1_cur;
 loop
-  fetch kpi1_cur into kpi1_rec;
+  fetch kpi_c1_cur into kpi_c1_rec;
   exit when not found;
   insert into securities_kpi (code, "time", 营业利润vs营业收入, 净利润vs营业收入, 净利润vs利润总额, 净利润vs股东权益合计)
-  values (kpi1_rec.code, kpi1_rec."time", kpi1_rec.营业利润vs营业收入, kpi1_rec.净利润vs营业收入, kpi1_rec.净利润vs利润总额, kpi1_rec.净利润vs股东权益合计)
+  values (kpi_c1_rec.code, kpi_c1_rec."time", kpi_c1_rec.营业利润vs营业收入, kpi_c1_rec.净利润vs营业收入, kpi_c1_rec.净利润vs利润总额, kpi_c1_rec.净利润vs股东权益合计)
   on conflict (code, "time") do update set
     营业利润vs营业收入   = excluded.营业利润vs营业收入,
     净利润vs营业收入     = excluded.净利润vs营业收入,
@@ -578,30 +578,30 @@ loop
     净利润vs股东权益合计 = excluded.净利润vs股东权益合计;
   affected_row_count = affected_row_count + 1;
 end loop;
-close kpi1_cur;
+close kpi_c1_cur;
 perform create_index_securities_kpi();
 return affected_row_count;
 end;
 $$ language plpgsql;
 
-drop function if exists insert_securities_kpis_2;
-create or replace function insert_securities_kpis_2(start_year integer, end_year integer) returns integer as $$
+drop function if exists insert_securities_kpi_c2;
+create or replace function insert_securities_kpi_c2(start_year integer, end_year integer) returns integer as $$
 declare
   affected_row_count integer := 0;
-  kpi2_cur cursor for select * from securities_kpis_2(start_year, end_year);
-  kpi2_rec record;
+  kpi_c2_cur cursor for select * from securities_kpi_c2(start_year, end_year);
+  kpi_c2_rec record;
 begin
 perform drop_index_securities_kpi();
-open kpi2_cur;
+open kpi_c2_cur;
 loop
-  fetch kpi2_cur into kpi2_rec;
+  fetch kpi_c2_cur into kpi_c2_rec;
   exit when not found;
   insert into securities_kpi (code, "time", 营业收入同比, 营业利润同比, 净利润同比, 营业收入环比, 营业利润环比, 净利润环比,
     经营活动产生的现金流量净额同比, 投资活动产生的现金流量净额同比, 筹资活动产生的现金流量净额同比, 现金及现金等价物净增加额同比,
     经营活动产生的现金流量净额环比, 投资活动产生的现金流量净额环比, 筹资活动产生的现金流量净额环比, 现金及现金等价物净增加额环比)
-  values (kpi2_rec.code, kpi2_rec."time", kpi2_rec.营业收入同比, kpi2_rec.营业利润同比, kpi2_rec.净利润同比, kpi2_rec.营业收入环比, kpi2_rec.营业利润环比, kpi2_rec.净利润环比,
-    kpi2_rec.经营活动产生的现金流量净额同比, kpi2_rec.投资活动产生的现金流量净额同比, kpi2_rec.筹资活动产生的现金流量净额同比, kpi2_rec.现金及现金等价物净增加额同比,
-    kpi2_rec.经营活动产生的现金流量净额环比, kpi2_rec.投资活动产生的现金流量净额环比, kpi2_rec.筹资活动产生的现金流量净额环比, kpi2_rec.现金及现金等价物净增加额环比)
+  values (kpi_c2_rec.code, kpi_c2_rec."time", kpi_c2_rec.营业收入同比, kpi_c2_rec.营业利润同比, kpi_c2_rec.净利润同比, kpi_c2_rec.营业收入环比, kpi_c2_rec.营业利润环比, kpi_c2_rec.净利润环比,
+    kpi_c2_rec.经营活动产生的现金流量净额同比, kpi_c2_rec.投资活动产生的现金流量净额同比, kpi_c2_rec.筹资活动产生的现金流量净额同比, kpi_c2_rec.现金及现金等价物净增加额同比,
+    kpi_c2_rec.经营活动产生的现金流量净额环比, kpi_c2_rec.投资活动产生的现金流量净额环比, kpi_c2_rec.筹资活动产生的现金流量净额环比, kpi_c2_rec.现金及现金等价物净增加额环比)
   on conflict (code, "time") do update set
     营业收入同比 = excluded.营业收入同比,
     营业利润同比 = excluded.营业利润同比,
@@ -619,26 +619,26 @@ loop
     现金及现金等价物净增加额环比   = excluded.现金及现金等价物净增加额环比;
   affected_row_count = affected_row_count + 1;
 end loop;
-close kpi2_cur;
+close kpi_c2_cur;
 perform create_index_securities_kpi();
 return affected_row_count;
 end;
 $$ language plpgsql;
 
-drop function if exists insert_securities_kpis_3;
-create or replace function insert_securities_kpis_3() returns integer as $$
+drop function if exists insert_securities_kpi_c3;
+create or replace function insert_securities_kpi_c3() returns integer as $$
 declare
   affected_row_count integer := 0;
-  kpi3_cur cursor for select * from securities_kpis_3();
-  kpi3_rec record;
+  kpi_c3_cur cursor for select * from securities_kpi_c3();
+  kpi_c3_rec record;
 begin
 perform drop_index_securities_kpi();
-open kpi3_cur;
+open kpi_c3_cur;
 loop
-  fetch kpi3_cur into kpi3_rec;
+  fetch kpi_c3_cur into kpi_c3_rec;
   exit when not found;
   insert into securities_kpi (code, "time", 市值, 市盈率, 市净率, 市盈率vs净利润增长率)
-  values (kpi3_rec.code, kpi3_rec."time", kpi3_rec.市值, kpi3_rec.市盈率, kpi3_rec.市净率, kpi3_rec.市盈率vs净利润增长率)
+  values (kpi_c3_rec.code, kpi_c3_rec."time", kpi_c3_rec.市值, kpi_c3_rec.市盈率, kpi_c3_rec.市净率, kpi_c3_rec.市盈率vs净利润增长率)
   on conflict (code, "time") do update set
     营业利润vs营业收入   = excluded.营业利润vs营业收入,
     净利润vs营业收入     = excluded.净利润vs营业收入,
@@ -646,7 +646,7 @@ loop
     净利润vs股东权益合计 = excluded.净利润vs股东权益合计;
   affected_row_count = affected_row_count + 1;
 end loop;
-close kpi3_cur;
+close kpi_c3_cur;
 perform create_index_securities_kpi();
 return affected_row_count;
 end;
