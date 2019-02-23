@@ -625,33 +625,6 @@ return affected_row_count;
 end;
 $$ language plpgsql;
 
-drop function if exists insert_securities_kpi_c3;
-create or replace function insert_securities_kpi_c3() returns integer as $$
-declare
-  affected_row_count integer := 0;
-  kpi_c3_cur cursor for select * from securities_kpi_c3();
-  kpi_c3_rec record;
-begin
-perform drop_index_securities_kpi();
-open kpi_c3_cur;
-loop
-  fetch kpi_c3_cur into kpi_c3_rec;
-  exit when not found;
-  insert into securities_kpi (code, "time", 市值, 市盈率, 市净率, 市盈率vs净利润增长率)
-  values (kpi_c3_rec.code, kpi_c3_rec."time", kpi_c3_rec.市值, kpi_c3_rec.市盈率, kpi_c3_rec.市净率, kpi_c3_rec.市盈率vs净利润增长率)
-  on conflict (code, "time") do update set
-    营业利润vs营业收入   = excluded.营业利润vs营业收入,
-    净利润vs营业收入     = excluded.净利润vs营业收入,
-    净利润vs利润总额     = excluded.净利润vs利润总额,
-    净利润vs股东权益合计 = excluded.净利润vs股东权益合计;
-  affected_row_count = affected_row_count + 1;
-end loop;
-close kpi_c3_cur;
-perform create_index_securities_kpi();
-return affected_row_count;
-end;
-$$ language plpgsql;
-
 -- transaction_soldout_subtotal:
 -- 已结实盈(清仓个股)，曾经持有，目前清仓的证券
 -- 要分期初已持有和期初未持有
