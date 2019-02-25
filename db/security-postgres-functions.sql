@@ -338,9 +338,11 @@ returns table (code varchar(6), "time" date,
                营业收入同比 numeric(20,4),
                营业利润同比 numeric(20,4),
                净利润同比 numeric(20,4),
+               归属于母公司股东的净利润同比 numeric(20,4),
                营业收入环比 numeric(20,4),
                营业利润环比 numeric(20,4),
                净利润环比 numeric(20,4),
+               归属于母公司股东的净利润环比 numeric(20,4),
                经营活动产生的现金流量净额同比 numeric(20,4),
                投资活动产生的现金流量净额同比 numeric(20,4),
                筹资活动产生的现金流量净额同比 numeric(20,4),
@@ -357,11 +359,14 @@ select
        then round((psrt1.营业收入 - psrt2.营业收入) / psrt2.营业收入 * 100, 4)
        else null end 营业收入同比,
   case when psrt2.营业利润 is not null and psrt2.营业利润 <> 0
-  then round((psrt1.营业利润 - psrt2.营业利润) / psrt2.营业利润 * 100, 4)
+       then round((psrt1.营业利润 - psrt2.营业利润) / psrt2.营业利润 * 100, 4)
        else null end 营业利润同比,
   case when psrt2.净利润 is not null and psrt2.净利润 <> 0
        then round((psrt1.净利润 - psrt2.净利润) / psrt2.净利润 * 100, 4)
        else null end 净利润同比,
+  case when psrt2.归属于母公司股东的净利润 is not null and psrt2.归属于母公司股东的净利润 <> 0
+       then round((psrt1.归属于母公司股东的净利润 - psrt2.归属于母公司股东的净利润) / psrt2.归属于母公司股东的净利润 * 100, 4)
+       else null end 归属于母公司股东的净利润同比,
 
   case when psrt3.营业收入 is not null and psrt3.营业收入 <> 0
        then round((psrt1.营业收入 - psrt3.营业收入) / psrt3.营业收入 * 100, 4)
@@ -372,6 +377,9 @@ select
   case when psrt3.净利润 is not null and psrt3.净利润 <> 0
        then round((psrt1.净利润 - psrt3.净利润) / psrt3.净利润 * 100, 4)
        else null end 净利润环比,
+  case when psrt3.归属于母公司股东的净利润 is not null and psrt3.归属于母公司股东的净利润 <> 0
+       then round((psrt1.归属于母公司股东的净利润 - psrt3.归属于母公司股东的净利润) / psrt3.归属于母公司股东的净利润 * 100, 4)
+       else null end 归属于母公司股东的净利润环比,
 
   case when psrt5.经营活动产生的现金流量净额 is not null and psrt5.经营活动产生的现金流量净额 <> 0
        then round((psrt4.经营活动产生的现金流量净额 - psrt5.经营活动产生的现金流量净额) / psrt5.经营活动产生的现金流量净额 * 100, 4)
@@ -401,12 +409,12 @@ select
 from securities_profit_sheet_running_total psrt1
 left join (
 select
-  t.code, t."time", 营业收入, 营业利润, 净利润
+  t.code, t."time", 营业收入, 营业利润, 净利润, 归属于母公司股东的净利润
 from securities_profit_sheet_running_total t
 ) psrt2 on psrt1.code = psrt2.code and psrt1."time" = psrt2."time" + interval '1 year'
 left join (
 select
-  t.code, t."time", 营业收入, 营业利润, 净利润
+  t.code, t."time", 营业收入, 营业利润, 净利润, 归属于母公司股东的净利润
 from securities_profit_sheet_running_total t
 ) psrt3 on psrt1.code = psrt3.code and date_trunc('quarter', psrt1."time"::timestamp) = date_trunc('quarter', psrt3."time"::timestamp) + interval '3 months'
 left join (
@@ -596,19 +604,24 @@ open kpi_c2_cur;
 loop
   fetch kpi_c2_cur into kpi_c2_rec;
   exit when not found;
-  insert into securities_kpi (code, "time", 营业收入同比, 营业利润同比, 净利润同比, 营业收入环比, 营业利润环比, 净利润环比,
+  insert into securities_kpi (code, "time",
+    营业收入同比, 营业利润同比, 净利润同比, 归属于母公司股东的净利润同比, 营业收入环比, 营业利润环比, 净利润环比, 归属于母公司股东的净利润环比,
     经营活动产生的现金流量净额同比, 投资活动产生的现金流量净额同比, 筹资活动产生的现金流量净额同比, 现金及现金等价物净增加额同比,
     经营活动产生的现金流量净额环比, 投资活动产生的现金流量净额环比, 筹资活动产生的现金流量净额环比, 现金及现金等价物净增加额环比)
-  values (kpi_c2_rec.code, kpi_c2_rec."time", kpi_c2_rec.营业收入同比, kpi_c2_rec.营业利润同比, kpi_c2_rec.净利润同比, kpi_c2_rec.营业收入环比, kpi_c2_rec.营业利润环比, kpi_c2_rec.净利润环比,
+  values (kpi_c2_rec.code, kpi_c2_rec."time",
+    kpi_c2_rec.营业收入同比, kpi_c2_rec.营业利润同比, kpi_c2_rec.净利润同比, kpi_c2_rec.归属于母公司股东的净利润同比,
+    kpi_c2_rec.营业收入环比, kpi_c2_rec.营业利润环比, kpi_c2_rec.净利润环比, kpi_c2_rec.归属于母公司股东的净利润环比,
     kpi_c2_rec.经营活动产生的现金流量净额同比, kpi_c2_rec.投资活动产生的现金流量净额同比, kpi_c2_rec.筹资活动产生的现金流量净额同比, kpi_c2_rec.现金及现金等价物净增加额同比,
     kpi_c2_rec.经营活动产生的现金流量净额环比, kpi_c2_rec.投资活动产生的现金流量净额环比, kpi_c2_rec.筹资活动产生的现金流量净额环比, kpi_c2_rec.现金及现金等价物净增加额环比)
   on conflict (code, "time") do update set
     营业收入同比 = excluded.营业收入同比,
     营业利润同比 = excluded.营业利润同比,
     净利润同比   = excluded.净利润同比,
+    归属于母公司股东的净利润同比 = excluded.归属于母公司股东的净利润同比,
     营业收入环比 = excluded.营业收入环比,
     营业利润环比 = excluded.营业利润环比,
     净利润环比   = excluded.净利润环比,
+    归属于母公司股东的净利润环比 = excluded.归属于母公司股东的净利润环比,
     经营活动产生的现金流量净额同比 = excluded.经营活动产生的现金流量净额同比,
     投资活动产生的现金流量净额同比 = excluded.投资活动产生的现金流量净额同比,
     筹资活动产生的现金流量净额同比 = excluded.筹资活动产生的现金流量净额同比,
