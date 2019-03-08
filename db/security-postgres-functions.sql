@@ -466,7 +466,7 @@ select
   case when psrt.归属于母公司股东的净利润 <> 0 then round(dq.price * ss.总股本 * 10000.0 / psrt.归属于母公司股东的净利润, 4) else null end 市盈率,
   case when bs.归属于母公司股东的权益 <> 0 then round(dq.price * ss.总股本 * 10000.0 / bs.归属于母公司股东的权益, 4) else null end 市净率,
   case when psrt.归属于母公司股东的净利润 <> 0 and kpi.净利润同比 <> 0 then round(dq.price * ss.总股本 * 10000.0 / psrt.归属于母公司股东的净利润 / kpi.净利润同比, 4) else null end 市盈率vs净利润增长率,
-  kk1.净利润过去五年增长率, round(kpi.净利润同比,2), round(kkk.净利润增长率波动率,2)
+  kk1.净利润过去五年增长率, round(kpi.净利润同比,2) 净利润增长率, round(kkk.净利润增长率波动率,2)
 from (
   select dq1.code, dq1."time", dq1.price from securities_day_quote dq1 where dq1.time = (select max(dq0.time) from securities_day_quote dq0)) dq
 join (
@@ -1111,4 +1111,270 @@ returns table (
       stock_structure_date,
       securities_kpi_date;
   end;
+$$ LANGUAGE plpgsql;
+
+drop function if exists short_list_from_kpi_c3_1;
+create or replace function short_list_from_kpi_c3_1()
+returns table (name varchar(10), code varchar(6), "time" date,
+               市值 numeric(20,2), 市盈率 numeric(10,4), 市净率 numeric(10,4),
+               市盈率vs净利润增长率 numeric(10,4),
+               净利润过去五年增长率 text, 净利润增长率 numeric(10,2), 净利润增长率波动率 numeric(10,2)
+) as $$
+begin
+return query
+select sc.name, k3.* from securities_kpi_c3() k3
+join securities_code sc on sc.code = k3.code
+where k3.code not in (
+  select cap.code from check_securities_kpi_c3_cap() cap where abs(cap_diff_percent) >= 2
+  union
+  select per.code from check_securities_kpi_c3_per() per
+  union
+  select pbr.code from check_securities_kpi_c3_pbr() pbr)
+and k3.市盈率vs净利润增长率 > 0 and k3.市盈率vs净利润增长率 < 1.0
+order by k3.市盈率, k3.市盈率vs净利润增长率;
+end;
+$$ LANGUAGE plpgsql;
+
+drop function if exists short_list_from_kpi_c3_1_1;
+create or replace function short_list_from_kpi_c3_1_1()
+returns table (name varchar(10), code varchar(6), "time" date,
+               市值 numeric(20,2), 市盈率 numeric(10,4), 市净率 numeric(10,4),
+               市盈率vs净利润增长率 numeric(10,4),
+               净利润过去五年增长率 text, 净利润增长率 numeric(10,2), 净利润增长率波动率 numeric(10,2)
+) as $$
+begin
+return query
+select sc.name, k3.* from securities_kpi_c3() k3
+join securities_code sc on sc.code = k3.code
+where k3.code not in (
+  select cap.code from check_securities_kpi_c3_cap() cap where abs(cap_diff_percent) >= 2
+  union
+  select per.code from check_securities_kpi_c3_per() per
+  union
+  select pbr.code from check_securities_kpi_c3_pbr() pbr)
+and k3.市盈率vs净利润增长率 > 0 and k3.市盈率vs净利润增长率 < 1.0
+and k3.市盈率 > 0 and k3.市盈率 < 30.0
+order by k3.市盈率, k3.市盈率vs净利润增长率;
+end;
+$$ LANGUAGE plpgsql;
+
+drop function if exists short_list_from_kpi_c3_1_1_1;
+create or replace function short_list_from_kpi_c3_1_1_1()
+returns table (name varchar(10), code varchar(6), "time" date,
+               市值 numeric(20,2), 市盈率 numeric(10,4), 市净率 numeric(10,4),
+               市盈率vs净利润增长率 numeric(10,4),
+               净利润过去五年增长率 text, 净利润增长率 numeric(10,2), 净利润增长率波动率 numeric(10,2)
+) as $$
+begin
+return query
+select sc.name, k3.* from securities_kpi_c3() k3
+join securities_code sc on sc.code = k3.code
+where k3.code not in (
+  select cap.code from check_securities_kpi_c3_cap() cap where abs(cap_diff_percent) >= 2
+  union
+  select per.code from check_securities_kpi_c3_per() per
+  union
+  select pbr.code from check_securities_kpi_c3_pbr() pbr)
+and k3.市盈率vs净利润增长率 > 0 and k3.市盈率vs净利润增长率 < 1.0
+and k3.市盈率 > 0 and k3.市盈率 < 30.0
+and k3.净利润过去五年增长率 not like '%-%'
+order by k3.市盈率, k3.市盈率vs净利润增长率;
+end;
+$$ LANGUAGE plpgsql;
+
+drop function if exists short_list_from_kpi_c3_1_1_1_1;
+create or replace function short_list_from_kpi_c3_1_1_1_1()
+returns table (name varchar(10), code varchar(6), "time" date,
+               市值 numeric(20,2), 市盈率 numeric(10,4), 市净率 numeric(10,4),
+               市盈率vs净利润增长率 numeric(10,4),
+               净利润过去五年增长率 text, 净利润增长率 numeric(10,2), 净利润增长率波动率 numeric(10,2)
+) as $$
+begin
+return query
+select sc.name, k3.* from securities_kpi_c3() k3
+join securities_code sc on sc.code = k3.code
+where k3.code not in (
+  select cap.code from check_securities_kpi_c3_cap() cap where abs(cap_diff_percent) >= 2
+  union
+  select per.code from check_securities_kpi_c3_per() per
+  union
+  select pbr.code from check_securities_kpi_c3_pbr() pbr)
+and k3.市盈率vs净利润增长率 > 0 and k3.市盈率vs净利润增长率 < 1.0
+and k3.市盈率 > 0 and k3.市盈率 < 30.0
+and k3.净利润过去五年增长率 not like '%-%'
+and k3.市值 > 1000000000000.0
+order by k3.市盈率, k3.市盈率vs净利润增长率;
+end;
+$$ LANGUAGE plpgsql;
+
+
+drop function if exists short_list_from_kpi_c3_1_1_1_2;
+create or replace function short_list_from_kpi_c3_1_1_1_2()
+returns table (name varchar(10), code varchar(6), "time" date,
+               市值 numeric(20,2), 市盈率 numeric(10,4), 市净率 numeric(10,4),
+               市盈率vs净利润增长率 numeric(10,4),
+               净利润过去五年增长率 text, 净利润增长率 numeric(10,2), 净利润增长率波动率 numeric(10,2)
+) as $$
+begin
+return query
+select sc.name, k3.* from securities_kpi_c3() k3
+join securities_code sc on sc.code = k3.code
+where k3.code not in (
+  select cap.code from check_securities_kpi_c3_cap() cap where abs(cap_diff_percent) >= 2
+  union
+  select per.code from check_securities_kpi_c3_per() per
+  union
+  select pbr.code from check_securities_kpi_c3_pbr() pbr)
+and k3.市盈率vs净利润增长率 > 0 and k3.市盈率vs净利润增长率 < 1.0
+and k3.市盈率 > 0 and k3.市盈率 < 30.0
+and k3.净利润过去五年增长率 not like '%-%'
+and k3.市值 > 100000000000.0
+and k3.市值 < 1000000000000.0
+order by k3.市盈率, k3.市盈率vs净利润增长率;
+end;
+$$ LANGUAGE plpgsql;
+
+drop function if exists short_list_from_kpi_c3_1_1_1_3;
+create or replace function short_list_from_kpi_c3_1_1_1_3()
+returns table (name varchar(10), code varchar(6), "time" date,
+               市值 numeric(20,2), 市盈率 numeric(10,4), 市净率 numeric(10,4),
+               市盈率vs净利润增长率 numeric(10,4),
+               净利润过去五年增长率 text, 净利润增长率 numeric(10,2), 净利润增长率波动率 numeric(10,2)
+) as $$
+begin
+return query
+select sc.name, k3.* from securities_kpi_c3() k3
+join securities_code sc on sc.code = k3.code
+where k3.code not in (
+  select cap.code from check_securities_kpi_c3_cap() cap where abs(cap_diff_percent) >= 2
+  union
+  select per.code from check_securities_kpi_c3_per() per
+  union
+  select pbr.code from check_securities_kpi_c3_pbr() pbr)
+and k3.市盈率vs净利润增长率 > 0 and k3.市盈率vs净利润增长率 < 1.0
+and k3.市盈率 > 0 and k3.市盈率 < 30.0
+and k3.净利润过去五年增长率 not like '%-%'
+and k3.市值 > 10000000000.0
+and k3.市值 < 100000000000.0
+order by k3.市盈率, k3.市盈率vs净利润增长率;
+end;
+$$ LANGUAGE plpgsql;
+
+drop function if exists short_list_from_kpi_c3_2;
+create or replace function short_list_from_kpi_c3_2()
+returns table (name varchar(10), code varchar(6), "time" date,
+               市值 numeric(20,2), 市盈率 numeric(10,4), 市净率 numeric(10,4),
+               市盈率vs净利润增长率 numeric(10,4),
+               净利润过去五年增长率 text, 净利润增长率 numeric(10,2), 净利润增长率波动率 numeric(10,2)
+) as $$
+begin
+return query
+select sc.name, k3.* from securities_kpi_c3() k3
+join securities_code sc on sc.code = k3.code
+where k3.code not in (
+  select cap.code from check_securities_kpi_c3_cap() cap where abs(cap_diff_percent) >= 2
+  union
+  select per.code from check_securities_kpi_c3_per() per
+  union
+  select pbr.code from check_securities_kpi_c3_pbr() pbr)
+and k3.市盈率 > 0 and k3.市盈率 < 30.0
+order by k3.市盈率, k3.市盈率vs净利润增长率;
+end;
+$$ LANGUAGE plpgsql;
+
+drop function if exists short_list_from_kpi_c3_2_1;
+create or replace function short_list_from_kpi_c3_2_1()
+returns table (name varchar(10), code varchar(6), "time" date,
+               市值 numeric(20,2), 市盈率 numeric(10,4), 市净率 numeric(10,4),
+               市盈率vs净利润增长率 numeric(10,4),
+               净利润过去五年增长率 text, 净利润增长率 numeric(10,2), 净利润增长率波动率 numeric(10,2)
+) as $$
+begin
+return query
+select sc.name, k3.* from securities_kpi_c3() k3
+join securities_code sc on sc.code = k3.code
+where k3.code not in (
+  select cap.code from check_securities_kpi_c3_cap() cap where abs(cap_diff_percent) >= 2
+   union
+  select per.code from check_securities_kpi_c3_per() per
+   union
+  select pbr.code from check_securities_kpi_c3_pbr() pbr)
+and k3.市盈率 > 0 and k3.市盈率 < 30.0
+and k3.净利润过去五年增长率 not like '%-%'
+order by k3.市盈率, k3.市盈率vs净利润增长率;
+end;
+$$ LANGUAGE plpgsql;
+
+drop function if exists short_list_from_kpi_c3_2_1_1;
+create or replace function short_list_from_kpi_c3_2_1_1()
+returns table (name varchar(10), code varchar(6), "time" date,
+               市值 numeric(20,2), 市盈率 numeric(10,4), 市净率 numeric(10,4),
+               市盈率vs净利润增长率 numeric(10,4),
+               净利润过去五年增长率 text, 净利润增长率 numeric(10,2), 净利润增长率波动率 numeric(10,2)
+) as $$
+begin
+return query
+select sc.name, k3.* from securities_kpi_c3() k3
+join securities_code sc on sc.code = k3.code
+where k3.code not in (
+  select cap.code from check_securities_kpi_c3_cap() cap where abs(cap_diff_percent) >= 2
+  union
+  select per.code from check_securities_kpi_c3_per() per
+  union
+  select pbr.code from check_securities_kpi_c3_pbr() pbr)
+and k3.市盈率 > 0 and k3.市盈率 < 30.0
+and k3.净利润过去五年增长率 not like '%-%'
+and k3.市值 > 1000000000000.0
+order by k3.市盈率, k3.市盈率vs净利润增长率;
+end;
+$$ LANGUAGE plpgsql;
+
+drop function if exists short_list_from_kpi_c3_2_1_2;
+create or replace function short_list_from_kpi_c3_2_1_2()
+returns table (name varchar(10), code varchar(6), "time" date,
+               市值 numeric(20,2), 市盈率 numeric(10,4), 市净率 numeric(10,4),
+               市盈率vs净利润增长率 numeric(10,4),
+               净利润过去五年增长率 text, 净利润增长率 numeric(10,2), 净利润增长率波动率 numeric(10,2)
+) as $$
+begin
+return query
+select sc.name, k3.* from securities_kpi_c3() k3
+join securities_code sc on sc.code = k3.code
+where k3.code not in (
+  select cap.code from check_securities_kpi_c3_cap() cap where abs(cap_diff_percent) >= 2
+  union
+  select per.code from check_securities_kpi_c3_per() per
+  union
+  select pbr.code from check_securities_kpi_c3_pbr() pbr)
+and k3.市盈率 > 0 and k3.市盈率 < 30.0
+and k3.净利润过去五年增长率 not like '%-%'
+and k3.市值 > 100000000000.0
+and k3.市值 < 1000000000000.0
+order by k3.市盈率, k3.市盈率vs净利润增长率;
+end;
+$$ LANGUAGE plpgsql;
+
+drop function if exists short_list_from_kpi_c3_2_1_3;
+create or replace function short_list_from_kpi_c3_2_1_3()
+returns table (name varchar(10), code varchar(6), "time" date,
+               市值 numeric(20,2), 市盈率 numeric(10,4), 市净率 numeric(10,4),
+               市盈率vs净利润增长率 numeric(10,4),
+               净利润过去五年增长率 text, 净利润增长率 numeric(10,2), 净利润增长率波动率 numeric(10,2)
+) as $$
+begin
+return query
+select sc.name, k3.* from securities_kpi_c3() k3
+join securities_code sc on sc.code = k3.code
+where k3.code not in (
+  select cap.code from check_securities_kpi_c3_cap() cap where abs(cap_diff_percent) >= 2
+  union
+  select per.code from check_securities_kpi_c3_per() per
+  union
+  select pbr.code from check_securities_kpi_c3_pbr() pbr)
+and k3.市盈率 > 0 and k3.市盈率 < 30.0
+and k3.净利润过去五年增长率 not like '%-%'
+and k3.市值 > 10000000000.0
+and k3.市值 < 100000000000.0
+order by k3.市盈率, k3.市盈率vs净利润增长率;
+end;
 $$ LANGUAGE plpgsql;
