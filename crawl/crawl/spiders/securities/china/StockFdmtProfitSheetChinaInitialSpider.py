@@ -28,9 +28,7 @@ class StockFdmtProfitSheetChinaInitialSpider(scrapy.Spider):
         self.logger.info(
             "Start to scrape stock fundamental initial profit sheet...")
         cmd = subprocess.Popen(
-            args=[
-                DIL_ROOT + '/sh/find_regular_report_not_scraped.sh', 'i', 'ps'
-            ],
+            args=[DIL_ROOT + '/sh/find_regular_report_not_scraped.sh', 'ps'],
             stdout=subprocess.PIPE)
         out, err = cmd.communicate()
         missings = out.split('\n')

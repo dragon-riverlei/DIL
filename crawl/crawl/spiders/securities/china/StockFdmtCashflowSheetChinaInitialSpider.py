@@ -28,9 +28,7 @@ class StockFdmtCashflowSheetChinaInitialSpider(scrapy.Spider):
         self.logger.info(
             "Start to scrape stock fundamental initial cash flow sheet...")
         cmd = subprocess.Popen(
-            args=[
-                DIL_ROOT + '/sh/find_regular_report_not_scraped.sh', 'i', 'cfs'
-            ],
+            args=[DIL_ROOT + '/sh/find_regular_report_not_scraped.sh', 'cfs'],
             stdout=subprocess.PIPE)
         out, err = cmd.communicate()
         missings = out.split('\n')
