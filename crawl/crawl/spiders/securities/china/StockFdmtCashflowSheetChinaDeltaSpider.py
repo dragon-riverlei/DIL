@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Example:
-# scrapy crawl StockFdmtCashflowSheetChinaDeltaSpider -a year=2017
+# scrapy crawl StockFdmtCashflowSheetChinaDeltaSpider -a year=2017 -a month=<3|6|9|12>
+# scrapy crawl StockFdmtCashflowSheetChinaDeltaSpider -a year=2017 -a month=<3|6|9|12> -a codes=601318,601336
 
 import json
 
@@ -15,6 +16,9 @@ from crawl.mysettings import DIL_ROOT
 
 
 class StockFdmtCashflowSheetChinaDeltaSpider(scrapy.Spider):
+    year = None
+    month = None
+    codes = None
     name = "StockFdmtCashflowSheetChinaDeltaSpider"
     allowed_domains = ["money.finance.sina.com.cn"]
     cash_flow_sheet_url_tpl = "http://money.finance.sina.com.cn/corp/go.php/vFD_CashFlow/stockid/{}/ctrl/{}/displaytype/4.phtml"
@@ -30,22 +34,27 @@ class StockFdmtCashflowSheetChinaDeltaSpider(scrapy.Spider):
 
     def start_requests(self):
         assert self.year is not None, "Cash flow sheet year not given."
-        self.year = self.year
-        self.logger.info(
-            "Start to scrape stock fundamental delta cash flow sheet for year "
-            + self.year)
-        cmd = subprocess.Popen(
-            args=[
-                DIL_ROOT + '/sh/find_regular_report_not_scraped.sh', 'd',
-                'cfs', self.year
-            ],
-            stdout=subprocess.PIPE)
-        out, err = cmd.communicate()
-        missings = out.split('\n')
+        assert self.year is not None, "Cash flow sheet month not given."
+        if self.codes is not None:
+            missings = self.codes.split(',')
+        else:
+            cmd = subprocess.Popen(
+                args=[
+                    DIL_ROOT + '/sh/find_regular_report_not_scraped_delta.sh',
+                    'cfs', self.year, self.month
+                ],
+                stdout=subprocess.PIPE)
+            out, err = cmd.communicate()
+            missings = out.split('\n')
+
         for missing in missings:
             if len(missing) > 0:
                 url = self.cash_flow_sheet_url_tpl.format(missing, self.year)
                 yield scrapy.Request(url=url, callback=self.parse)
+
+        self.logger.info(
+            "Start to scrape stock fundamental delta cash flow sheet for year "
+            + self.year + " on codes: " + ",".join(missings))
 
     def parse(self, response):
         match = self.code_rexp.match(response.request.url)
