@@ -47,7 +47,7 @@ if [ -n "$3" ] && [ "$3" -eq "$3" ]; then
         table2=securities_"$report_type"_sheet_general
         table3=securities_"$report_type"_sheet_insurance
         table4=securities_"$report_type"_sheet_securities
-        psql "$db" -t <<EOF
+        psql "$db" -t <<EOF | awk '{print $1}'
 select code from securities_code where code not in (
 select code from $table1 where extract(year from time) = $2 and extract(month from time) = $3
 union
