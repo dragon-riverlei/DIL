@@ -1037,40 +1037,65 @@ end;
 $$ LANGUAGE plpgsql;
 
 drop function if exists insert_securities_cash_flow_sheet_running_total_single_year;
-create or replace function insert_securities_cash_flow_sheet_running_total_single_year(single_year integer) returns void as $$
+create or replace function insert_securities_cash_flow_sheet_running_total_single_year(single_year integer) returns integer as $$
+declare
+  affected_row_count integer := 0;
+  cfsrt_rec record;
+  cfsrt_cur cursor for
+    select
+      cfsbrtsy_code code, cfsbrtsy_time "time",
+      cfsbrtsy_经营活动产生的现金流量净额 经营活动产生的现金流量净额,
+      cfsbrtsy_投资活动产生的现金流量净额 投资活动产生的现金流量净额,
+      cfsbrtsy_筹资活动产生的现金流量净额 筹资活动产生的现金流量净额,
+      cfsbrtsy_现金及现金等价物净增加额 现金及现金等价物净增加额
+    from securities_cash_flow_sheet_bank_running_total_single_year(single_year)
+    where cfsbrtsy_经营活动产生的现金流量净额 is not null
+    union
+    select
+      cfsgrtsy_code code, cfsgrtsy_time "time",
+      cfsgrtsy_经营活动产生的现金流量净额 经营活动产生的现金流量净额,
+      cfsgrtsy_投资活动产生的现金流量净额 投资活动产生的现金流量净额,
+      cfsgrtsy_筹资活动产生的现金流量净额 筹资活动产生的现金流量净额,
+      cfsgrtsy_现金及现金等价物净增加额 现金及现金等价物净增加额
+    from securities_cash_flow_sheet_general_running_total_single_year(single_year)
+    where cfsgrtsy_经营活动产生的现金流量净额 is not null
+    union
+    select
+      cfssrtsy_code code, cfssrtsy_time "time",
+      cfssrtsy_经营活动产生的现金流量净额 经营活动产生的现金流量净额,
+      cfssrtsy_投资活动产生的现金流量净额 投资活动产生的现金流量净额,
+      cfssrtsy_筹资活动产生的现金流量净额 筹资活动产生的现金流量净额,
+      cfssrtsy_现金及现金等价物净增加额 现金及现金等价物净增加额
+    from securities_cash_flow_sheet_securities_running_total_single_year(single_year)
+    where cfssrtsy_经营活动产生的现金流量净额 is not null
+    union
+    select
+      cfsirtsy_code code, cfsirtsy_time "time",
+      cfsirtsy_经营活动产生的现金流量净额 经营活动产生的现金流量净额,
+      cfsirtsy_投资活动产生的现金流量净额 投资活动产生的现金流量净额,
+      cfsirtsy_筹资活动产生的现金流量净额 筹资活动产生的现金流量净额,
+      cfsirtsy_现金及现金等价物净增加额 现金及现金等价物净增加额
+    from securities_cash_flow_sheet_insurance_running_total_single_year(single_year)
+    where cfsirtsy_经营活动产生的现金流量净额 is not null;
 begin
-drop index if exists  securities_cash_flow_sheet_running_total_idx_year;
-drop index if exists  securities_cash_flow_sheet_running_total_idx_month;
-insert into securities_cash_flow_sheet_running_total
-select
-  cfsbrtsy_code code, cfsbrtsy_time "time",
-  cfsbrtsy_经营活动产生的现金流量净额, cfsbrtsy_投资活动产生的现金流量净额,
-  cfsbrtsy_筹资活动产生的现金流量净额, cfsbrtsy_现金及现金等价物净增加额
-from securities_cash_flow_sheet_bank_running_total_single_year(single_year)
-where cfsbrtsy_经营活动产生的现金流量净额 is not null
-union
-select
-  cfsgrtsy_code code, cfsgrtsy_time "time",
-  cfsgrtsy_经营活动产生的现金流量净额, cfsgrtsy_投资活动产生的现金流量净额,
-  cfsgrtsy_筹资活动产生的现金流量净额, cfsgrtsy_现金及现金等价物净增加额
-from securities_cash_flow_sheet_general_running_total_single_year(single_year)
-where cfsgrtsy_经营活动产生的现金流量净额 is not null
-union
-select
-  cfssrtsy_code code, cfssrtsy_time "time",
-  cfssrtsy_经营活动产生的现金流量净额, cfssrtsy_投资活动产生的现金流量净额,
-  cfssrtsy_筹资活动产生的现金流量净额, cfssrtsy_现金及现金等价物净增加额
-from securities_cash_flow_sheet_securities_running_total_single_year(single_year)
-where cfssrtsy_经营活动产生的现金流量净额 is not null
-union
-select
-  cfsirtsy_code code, cfsirtsy_time "time",
-  cfsirtsy_经营活动产生的现金流量净额, cfsirtsy_投资活动产生的现金流量净额,
-  cfsirtsy_筹资活动产生的现金流量净额, cfsirtsy_现金及现金等价物净增加额
-from securities_cash_flow_sheet_insurance_running_total_single_year(single_year)
-where cfsirtsy_经营活动产生的现金流量净额 is not null
-on conflict do nothing;
-create index securities_cash_flow_sheet_running_total_idx_year on securities_cash_flow_sheet_running_total ((extract(year from time)));
-create index securities_cash_flow_sheet_running_total_idx_month on securities_cash_flow_sheet_running_total ((extract(month from time)));
+perform drop_index_securities_cash_flow_sheet_running_total();
+open cfsrt_cur;
+loop
+  fetch cfsrt_cur into cfsrt_rec;
+  exit when not found;
+  insert into securities_cash_flow_sheet_running_total(code, "time",经营活动产生的现金流量净额,投资活动产生的现金流量净额,筹资活动产生的现金流量净额,现金及现金等价物净增加额)
+  values (cfsrt_rec.code, cfsrt_rec."time", cfsrt_rec.经营活动产生的现金流量净额, cfsrt_rec.投资活动产生的现金流量净额, cfsrt_rec.筹资活动产生的现金流量净额, cfsrt_rec.现金及现金等价物净增加额)
+          on conflict (code, "time") do update set
+          code = excluded.code,
+          "time" = excluded. "time",
+          经营活动产生的现金流量净额 = excluded.经营活动产生的现金流量净额,
+          投资活动产生的现金流量净额 = excluded.投资活动产生的现金流量净额,
+          筹资活动产生的现金流量净额 = excluded.筹资活动产生的现金流量净额,
+          现金及现金等价物净增加额 = excluded.现金及现金等价物净增加额;
+  affected_row_count = affected_row_count + 1;
+end loop;
+close cfsrt_cur;
+perform create_index_securities_cash_flow_sheet_running_total();
+return affected_row_count;
 end;
 $$ LANGUAGE plpgsql;
