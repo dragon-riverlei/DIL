@@ -47,14 +47,14 @@ class StockFdmtCashflowSheetChinaDeltaSpider(scrapy.Spider):
             out, err = cmd.communicate()
             missings = out.split('\n')
 
+        self.logger.info(
+            "Start to scrape stock fundamental delta cash flow sheet for year "
+            + self.year + " on codes: " + ",".join(missings))
+
         for missing in missings:
             if len(missing) > 0:
                 url = self.cash_flow_sheet_url_tpl.format(missing, self.year)
                 yield scrapy.Request(url=url, callback=self.parse)
-
-        self.logger.info(
-            "Start to scrape stock fundamental delta cash flow sheet for year "
-            + self.year + " on codes: " + ",".join(missings))
 
     def parse(self, response):
         match = self.code_rexp.match(response.request.url)
