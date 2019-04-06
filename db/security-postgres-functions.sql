@@ -447,17 +447,16 @@ begin
 return query
 with
   kpi as (
-    select k.code, avg(k.净利润同比) 净利润同比 from (
-      select k0.code, 净利润同比, row_number() over (partition by k0.code order by k0."time" desc) row_num from securities_kpi k0) k
-    where k.row_num < 5
-    group by k.code
+    select k.code, k.归属于母公司股东的净利润同比 from (
+      select k0.code, 归属于母公司股东的净利润同比, row_number() over (partition by k0.code order by k0."time" desc) row_num from securities_kpi k0) k
+    where k.row_num = 1
   ),
   kk as (
-    select kk2.code, kk2.净利润同比 , kk2.row_num from (
-      select kk1.code, kk1.time, kk1.净利润同比, row_number() over (partition by kk1.code order by kk1.time desc) row_num from (
-        select kk0.code, kk0.time, round(kk0.净利润同比,2) 净利润同比 from securities_kpi kk0
+    select kk2.code, kk2.归属于母公司股东的净利润同比, kk2.row_num from (
+      select kk1.code, kk1.time, kk1.归属于母公司股东的净利润同比, row_number() over (partition by kk1.code order by kk1.time desc) row_num from (
+        select kk0.code, kk0.time, round(kk0.归属于母公司股东的净利润同比,2) 归属于母公司股东的净利润同比 from securities_kpi kk0
          where kk0."time" < now() and extract(month from kk0."time") = 12 order by kk0.code, kk0.time) kk1
-       where kk1.净利润同比 is not null) kk2
+       where kk1.归属于母公司股东的净利润同比 is not null) kk2
      where kk2.row_num < 6 order by kk2.code, kk2.time
   )
 select
@@ -465,8 +464,8 @@ select
   round(dq.price * ss.总股本 * 10000.0, 2) 市值,
   case when psrt.归属于母公司股东的净利润 <> 0 then round(dq.price * ss.总股本 * 10000.0 / psrt.归属于母公司股东的净利润, 4) else null end 市盈率,
   case when bs.归属于母公司股东的权益 <> 0 then round(dq.price * ss.总股本 * 10000.0 / bs.归属于母公司股东的权益, 4) else null end 市净率,
-  case when psrt.归属于母公司股东的净利润 <> 0 and kpi.净利润同比 <> 0 then round(dq.price * ss.总股本 * 10000.0 / psrt.归属于母公司股东的净利润 / kpi.净利润同比, 4) else null end 市盈率vs净利润增长率,
-  kk1.净利润过去五年增长率, round(kpi.净利润同比,2) 净利润增长率, round(kkk.净利润增长率波动率,2)
+  case when psrt.归属于母公司股东的净利润 <> 0 and kpi.归属于母公司股东的净利润同比 <> 0 then round(dq.price * ss.总股本 * 10000.0 / psrt.归属于母公司股东的净利润 / kpi.归属于母公司股东的净利润同比, 4) else null end 市盈率vs净利润增长率,
+  kk1.净利润过去五年增长率, round(kpi.归属于母公司股东的净利润同比,2) 净利润增长率, round(kkk.净利润增长率波动率,2)
 from (
   select dq1.code, dq1."time", dq1.price from securities_day_quote dq1 where dq1.time = (select max(dq0.time) from securities_day_quote dq0)) dq
 join (
@@ -492,10 +491,10 @@ join (
 ) bs on dq.code = bs.code
 join kpi on dq.code = kpi.code
 join (
-  select kk.code, array_to_string(array_agg(kk.净利润同比), '|') 净利润过去五年增长率 from kk group by kk.code
+  select kk.code, array_to_string(array_agg(kk.归属于母公司股东的净利润同比), '|') 净利润过去五年增长率 from kk group by kk.code
 ) kk1 on dq.code = kk1.code
 join (
-  select kkk0.code, stddev(kkk0.净利润同比) / avg(kkk0.净利润同比) * 100 净利润增长率波动率 from (
+  select kkk0.code, stddev(kkk0.归属于母公司股东的净利润同比) / avg(kkk0.归属于母公司股东的净利润同比) * 100 净利润增长率波动率 from (
     select kpi.*, 0 as row_num from kpi
     union
     select kk.* from kk) kkk0
