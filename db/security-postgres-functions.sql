@@ -563,6 +563,79 @@ where t.pbr_diff_percent >= 1.0;
 end;
 $$ language plpgsql;
 
+drop function if exists securities_kpi_c4;
+create or replace function securities_kpi_c4(start_year integer, end_year integer)
+returns table (code varchar(6), "time" date,
+               "每股现金分红" numeric(10,2), "总股本" numeric(20,2),
+               "现金分红总额" numeric(20,2), "归属于母公司股东的净利润" numeric(20,2), "分红比例%" numeric(10,2)) as $$
+begin
+return query
+select
+  dvdb.code, dvdb.time,
+  round(dvdb.现金分红 / 10, 2) "每股现金分红",
+  ssb.总股本,
+  round(dvdb.现金分红 * ssb.总股本 * 1000, 2) 现金分红总额,
+  psb.归属于母公司的净利润,
+  round(dvdb.现金分红 * ssb.总股本 * 1000 / psb.归属于母公司的净利润 * 100, 2) "分红比例%"
+from securities_dividend dvdb
+join lateral (
+  select ss0.code, ss0.time, ss0.总股本 from securities_stock_structure ss0 where ss0.code = dvdb.code and ss0.time <= dvdb.预案公告日 order by ss0.time desc limit 1
+) ssb on true
+join securities_profit_sheet_bank psb on dvdb.code = psb.code and dvdb.time = psb.time
+where
+  dvdb.现金分红 is not null and
+  extract(year from dvdb.time)::integer between start_year and end_year
+union
+select
+  dvdg.code, dvdg.time,
+  round(dvdg.现金分红 / 10, 2) "每股现金分红",
+  ssg.总股本,
+  round(dvdg.现金分红 * ssg.总股本 * 1000, 2) 现金分红总额,
+  psg.归属于母公司所有者的净利润,
+  round(dvdg.现金分红 * ssg.总股本 * 1000 / psg.归属于母公司所有者的净利润 * 100, 2) "分红比例%"
+from securities_dividend dvdg
+join lateral (
+  select ss0.code, ss0.time, ss0.总股本 from securities_stock_structure ss0 where ss0.code = dvdg.code and ss0.time <= dvdg.预案公告日 order by ss0.time desc limit 1
+) ssg on true
+join securities_profit_sheet_general psg on dvdg.code = psg.code and dvdg.time = psg.time
+where
+  dvdg.现金分红 is not null and
+  extract(year from dvdg.time)::integer between start_year and end_year
+union
+select
+  dvdi.code, dvdi.time,
+  round(dvdi.现金分红 / 10, 2) "每股现金分红",
+  ssi.总股本,
+  round(dvdi.现金分红 * ssi.总股本 * 1000, 2) 现金分红总额,
+  psi.归属于母公司股东的净利润,
+  round(dvdi.现金分红 * ssi.总股本 * 1000 / psi.归属于母公司股东的净利润 * 100, 2) "分红比例%"
+from securities_dividend dvdi
+join lateral (
+  select ss0.code, ss0.time, ss0.总股本 from securities_stock_structure ss0 where ss0.code = dvdi.code and ss0.time <= dvdi.预案公告日 order by ss0.time desc limit 1
+) ssi on true
+join securities_profit_sheet_insurance psi on dvdi.code = psi.code and dvdi.time = psi.time
+where
+  dvdi.现金分红 is not null and
+  extract(year from dvdi.time)::integer between start_year and end_year
+union
+select
+  dvds.code, dvds.time,
+  round(dvds.现金分红 / 10, 2) "每股现金分红",
+  sss.总股本,
+  round(dvds.现金分红 * sss.总股本 * 1000, 2) 现金分红总额,
+  pss.归属于母公司所有者的净利润,
+  round(dvds.现金分红 * sss.总股本 * 1000 / pss.归属于母公司所有者的净利润 * 100, 2) "分红比例%"
+from securities_dividend dvds
+join lateral (
+  select ss0.code, ss0.time, ss0.总股本 from securities_stock_structure ss0 where ss0.code = dvds.code and ss0.time <= dvds.预案公告日 order by ss0.time desc limit 1
+) sss on true
+join securities_profit_sheet_securities pss on dvds.code = pss.code and dvds.time = pss.time
+where
+  dvds.现金分红 is not null and
+  extract(year from dvds.time)::integer between start_year and end_year;
+end;
+$$ language plpgsql;
+
 drop function if exists insert_securities_kpi_c1;
 create or replace function insert_securities_kpi_c1(start_year integer, end_year integer) returns integer as $$
 declare
