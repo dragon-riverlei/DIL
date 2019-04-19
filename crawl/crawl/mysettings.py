@@ -21,7 +21,8 @@ ITEM_EXPORTER_PATH = {
     "StockFdmtProfitSheetChinaInitial": DIL_ROOT + "/feeds/fdmt_profit_sheet_initial/data/",
     "StockFdmtProfitSheetChinaDelta": DIL_ROOT + "/feeds/fdmt_profit_sheet_delta/data/",
     "StockDividendChina": DIL_ROOT + "/feeds/fdmt_dividend/data/",
-    "StockStructureChina": DIL_ROOT + "/feeds/stock_structure/data/"
+    "StockStructureChina": DIL_ROOT + "/feeds/stock_structure/data/",
+    "StockStructureTotalShareChina": DIL_ROOT + "/feeds/stock_structure/data/"
 }
 # yapf: ensable
 
@@ -31,4 +32,5 @@ FILE_STOCK_IPO_INFO_CHINA = "stock_ipo_info_china.jl"
 FILE_STOCK_LIST_CHINA = "stock_list_china.jl"
 FILE_STOCK_DAY_QUOTE_CHINA = "stock_day_quote_china.jl"
 FILE_STOCK_DIVIDEND_CHINA = "stock_dividend_china"
+FILE_STOCK_STRUDTURE_TOTO_SHARE_CHINA = "stock_structure_total_share_china.jl"
 # yapf: ensable

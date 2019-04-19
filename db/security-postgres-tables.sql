@@ -985,3 +985,10 @@ create table if not exists securities_stock_structure (
   优先股 numeric(20,2) not null,
   primary key (code, time)
 );
+
+create table if not exists securities_stock_structure_sina (
+  code varchar(6) not null, -- 证券代码
+  time date not null, -- 日期
+  总股本 numeric(20,2) not null,
+  primary key (code, time)
+);

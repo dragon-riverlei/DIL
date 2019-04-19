@@ -16,6 +16,7 @@ from crawl.mysettings import (
     FILE_STOCK_LIST_CHINA,
     FILE_STOCK_DAY_QUOTE_CHINA,
     FILE_STOCK_DIVIDEND_CHINA,
+    FILE_STOCK_STRUDTURE_TOTO_SHARE_CHINA,
 )
 
 
@@ -168,6 +169,16 @@ class StockStructureChinaPipeline(CrawlPipeline):
         stock_structure_file = open(path + item['code'] + ".jl", "wb")
         stock_structure_file.write(item['result'])
         stock_structure_file.close()
+        return item
+
+
+class StockStructureTotalShareChinaPipeline(CrawlPipeline):
+    def process_item(self, item, spider):
+        exporter = self.get_exporter(self.__class__.__name__[:-8],
+                                     FILE_STOCK_STRUDTURE_TOTO_SHARE_CHINA)
+        results = item["results"]
+        for r in results:
+            exporter.export_item({"csv_line": r})
         return item
 
 
