@@ -18,6 +18,7 @@ feeds/fdmt_profit_sheet_delta
 
 feeds/fdmt_dividend/data
 feeds/stock_structure/data
+feeds/stock_structure/dbdata
 
 feeds/stock_day_quote_china.jl
 tmp/
