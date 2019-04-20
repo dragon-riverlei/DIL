@@ -286,6 +286,14 @@ create index securities_stock_structure_idx_month on securities_stock_structure 
 end;
 $$ language plpgsql;
 
+drop function if exists create_index_securities_stock_structure_sina;
+create or replace function create_index_securities_stock_structure_sina() returns void as $$
+begin
+create index securities_stock_structure_sina_idx_year on securities_stock_structure_sina ((extract(year from time)));
+create index securities_stock_structure_sina_idx_month on securities_stock_structure_sina ((extract(month from time)));
+end;
+$$ language plpgsql;
+
 drop function if exists drop_all_indexes;
 create or replace function drop_all_indexes() returns void as $$
 begin
