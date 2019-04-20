@@ -469,8 +469,8 @@ select
 from (
   select dq1.code, dq1."time", dq1.price from securities_day_quote dq1 where dq1.time = (select max(dq0.time) from securities_day_quote dq0)) dq
 join (
-  select ss1.code, ss1.总股本 from securities_stock_structure ss1
-  join (select ss0.code, max(ss0.time) "time" from securities_stock_structure ss0 group by ss0.code) ss2 on ss1.code = ss2.code and ss1."time" = ss2."time"
+  select ss1.code, ss1.总股本 from securities_stock_structure_sina ss1
+  join (select ss0.code, max(ss0.time) "time" from securities_stock_structure_sina ss0 group by ss0.code) ss2 on ss1.code = ss2.code and ss1."time" = ss2."time"
 ) ss on dq.code = ss.code
 join (
   select psrt1.code, psrt1.归属于母公司股东的净利润 from securities_profit_sheet_running_total psrt1
@@ -576,10 +576,10 @@ select
   ssb.总股本,
   round(dvdb.现金分红 * ssb.总股本 * 1000, 2) 现金分红总额,
   psb.归属于母公司的净利润,
-  round(dvdb.现金分红 * ssb.总股本 * 1000 / psb.归属于母公司的净利润 * 100, 2) "分红比例%"
+  case when psb.归属于母公司的净利润 = 0 then null else round(dvdb.现金分红 * ssb.总股本 * 1000 / psb.归属于母公司的净利润 * 100, 2) end "分红比例%"
 from securities_dividend dvdb
 join lateral (
-  select ss0.code, ss0.time, ss0.总股本 from securities_stock_structure ss0 where ss0.code = dvdb.code and ss0.time <= dvdb.预案公告日 order by ss0.time desc limit 1
+  select ss0.code, ss0.time, ss0.总股本 from securities_stock_structure_sina ss0 where ss0.code = dvdb.code and ss0.time <= dvdb.预案公告日 order by ss0.time desc limit 1
 ) ssb on true
 join securities_profit_sheet_bank psb on dvdb.code = psb.code and dvdb.time = psb.time
 where
@@ -592,10 +592,10 @@ select
   ssg.总股本,
   round(dvdg.现金分红 * ssg.总股本 * 1000, 2) 现金分红总额,
   psg.归属于母公司所有者的净利润,
-  round(dvdg.现金分红 * ssg.总股本 * 1000 / psg.归属于母公司所有者的净利润 * 100, 2) "分红比例%"
+  case when psg.归属于母公司所有者的净利润 = 0 then null else round(dvdg.现金分红 * ssg.总股本 * 1000 / psg.归属于母公司所有者的净利润 * 100, 2) end "分红比例%"
 from securities_dividend dvdg
 join lateral (
-  select ss0.code, ss0.time, ss0.总股本 from securities_stock_structure ss0 where ss0.code = dvdg.code and ss0.time <= dvdg.预案公告日 order by ss0.time desc limit 1
+  select ss0.code, ss0.time, ss0.总股本 from securities_stock_structure_sina ss0 where ss0.code = dvdg.code and ss0.time <= dvdg.预案公告日 order by ss0.time desc limit 1
 ) ssg on true
 join securities_profit_sheet_general psg on dvdg.code = psg.code and dvdg.time = psg.time
 where
@@ -608,10 +608,10 @@ select
   ssi.总股本,
   round(dvdi.现金分红 * ssi.总股本 * 1000, 2) 现金分红总额,
   psi.归属于母公司股东的净利润,
-  round(dvdi.现金分红 * ssi.总股本 * 1000 / psi.归属于母公司股东的净利润 * 100, 2) "分红比例%"
+  case when psi.归属于母公司股东的净利润 = 0 then null else round(dvdi.现金分红 * ssi.总股本 * 1000 / psi.归属于母公司股东的净利润 * 100, 2) end "分红比例%"
 from securities_dividend dvdi
 join lateral (
-  select ss0.code, ss0.time, ss0.总股本 from securities_stock_structure ss0 where ss0.code = dvdi.code and ss0.time <= dvdi.预案公告日 order by ss0.time desc limit 1
+  select ss0.code, ss0.time, ss0.总股本 from securities_stock_structure_sina ss0 where ss0.code = dvdi.code and ss0.time <= dvdi.预案公告日 order by ss0.time desc limit 1
 ) ssi on true
 join securities_profit_sheet_insurance psi on dvdi.code = psi.code and dvdi.time = psi.time
 where
@@ -624,10 +624,10 @@ select
   sss.总股本,
   round(dvds.现金分红 * sss.总股本 * 1000, 2) 现金分红总额,
   pss.归属于母公司所有者的净利润,
-  round(dvds.现金分红 * sss.总股本 * 1000 / pss.归属于母公司所有者的净利润 * 100, 2) "分红比例%"
+  case when pss.归属于母公司所有者的净利润 = 0 then null else round(dvds.现金分红 * sss.总股本 * 1000 / pss.归属于母公司所有者的净利润 * 100, 2) end "分红比例%"
 from securities_dividend dvds
 join lateral (
-  select ss0.code, ss0.time, ss0.总股本 from securities_stock_structure ss0 where ss0.code = dvds.code and ss0.time <= dvds.预案公告日 order by ss0.time desc limit 1
+  select ss0.code, ss0.time, ss0.总股本 from securities_stock_structure_sina ss0 where ss0.code = dvds.code and ss0.time <= dvds.预案公告日 order by ss0.time desc limit 1
 ) sss on true
 join securities_profit_sheet_securities pss on dvds.code = pss.code and dvds.time = pss.time
 where
