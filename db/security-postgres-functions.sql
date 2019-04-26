@@ -636,6 +636,61 @@ where
 end;
 $$ language plpgsql;
 
+drop function if exists securities_kpi_c5;
+create or replace function securities_kpi_c5(end_year integer)
+returns table (code varchar(6), "价格日期" date, "价格" numeric(10,4), "最近五次分红比例" text,
+                "分红比例一%" numeric(10,2), "潜在分红一vs价格%" numeric(10,2),
+                "分红比例二%" numeric(10,2), "潜在分红二vs价格%" numeric(10,2),
+                "分红比例三%" numeric(10,2), "潜在分红三vs价格%" numeric(10,2)) as $$
+begin
+return query
+with
+dvd_ratio_annual as (
+  select t1.code, t1.year || '12-31' "time",
+    round(t1.现金分红总额 / t2.归属于母公司股东的净利润 * 100, 2) "分红比例%",
+    row_number() over (partition by t1.code order by t1.year desc)
+  from (
+    select t.code, extract(year from t.time) "year", sum(现金分红总额) 现金分红总额 from securities_kpi_c4(end_year - 5, end_year) t group by 1,2
+  ) t1
+  join lateral (
+    select "归属于母公司股东的净利润" from securities_kpi_c4(end_year - 5, end_year) t
+    where t.code = t1.code and extract(year from t.time) = t1."year" and extract(month from t.time) = 12
+  ) t2 on true
+)
+select
+  dr1.code, dq.time "价格日期",
+  round(dq.price, 2) "价格",
+  dr1."过去五年分红比例",
+  dr2."分红比例一%",
+  case when ss."总股本" <> 0 and dq.price <>0 then round(psrt."归属于母公司股东的净利润" * dr2."分红比例一%" / ss."总股本" / dq.price / 10000, 2) else null end "潜在分红一vs价格%",
+  dr2."分红比例二%",
+  case when ss."总股本" <> 0 and dq.price <>0 then round(psrt."归属于母公司股东的净利润" * dr2."分红比例二%" / ss."总股本" / dq.price / 10000, 2) else null end "潜在分红二vs价格%",
+  dr2."分红比例三%",
+  case when ss."总股本" <> 0 and dq.price <>0 then round(psrt."归属于母公司股东的净利润" * dr2."分红比例三%" / ss."总股本" / dq.price / 10000, 2) else null end "潜在分红三vs价格%"
+from (
+  select dr.code, array_to_string(array_agg(dr."分红比例%"), '|') "过去五年分红比例"
+  from (select * from dvd_ratio_annual order by time) dr
+  where dr.row_number < 6 group by dr.code having count(dr."分红比例%") = 5
+) dr1
+join (
+  select dr.code, (array_agg("分红比例%"))[1] "分红比例一%", (array_agg("分红比例%"))[2] "分红比例二%", (array_agg("分红比例%"))[3] "分红比例三%"
+  from (
+    select dvd.code, "分红比例%" from dvd_ratio_annual dvd where row_number < 4 order by dvd.code, "分红比例%"
+  ) dr
+  group by dr.code
+) dr2 on dr1.code = dr2.code
+join (
+  select psrt0.code, 归属于母公司股东的净利润 from securities_profit_sheet_running_total psrt0 where extract(year from time) = end_year and extract(month from time) = 12
+) psrt on dr1.code = psrt.code
+join lateral (
+  select ss0.code, 总股本 from securities_stock_structure_sina ss0 where ss0.code = dr1.code order by time desc limit 1
+) ss on true
+join (
+  select dq1.code, dq1."time", dq1.price from securities_day_quote dq1 where dq1.time = (select max(dq0.time) from securities_day_quote dq0)
+) dq on dr1.code = dq.code;
+end;
+$$ language plpgsql;
+
 drop function if exists insert_securities_kpi_c1;
 create or replace function insert_securities_kpi_c1(start_year integer, end_year integer) returns integer as $$
 declare
