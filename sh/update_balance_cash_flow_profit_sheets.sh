@@ -21,11 +21,11 @@ if [ ! "$2" -eq 3 ] && [ ! "$2" -eq 6 ] && [ ! "$2" -eq 9 ] && [ ! "$2" -eq 12 ]
     usage
 fi
 
-. $(dirname "$0")/update_balance_sheet.sh "$1" "$2" "$3"
-. $(dirname "$0")/update_cash_flow_sheet.sh "$1" "$2" "$3"
-. $(dirname "$0")/update_profit_sheet.sh "$1" "$2" "$3"
-
 . $(dirname "$0")/env.sh
+
+"$DIL_ROOT"/sh/update_balance_sheet.sh "$1" "$2" "$3"
+"$DIL_ROOT"/sh/update_cash_flow_sheet.sh "$1" "$2" "$3"
+"$DIL_ROOT"/sh/update_profit_sheet.sh "$1" "$2" "$3"
 
 echo "Updating table securities_cash_flow_sheet_running_total..."
 psql "$db" <<EOF
