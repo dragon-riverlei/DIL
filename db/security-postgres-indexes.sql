@@ -286,6 +286,14 @@ create index securities_stock_structure_idx_month on securities_stock_structure 
 end;
 $$ language plpgsql;
 
+drop function if exists drop_index_securities_stock_structure_sina;
+create or replace function drop_index_securities_stock_structure_sina() returns void as $$
+begin
+drop index if exists securities_stock_structure_sina_idx_year;
+drop index if exists securities_stock_structure_sina_idx_month;
+end;
+$$ language plpgsql;
+
 drop function if exists create_index_securities_stock_structure_sina;
 create or replace function create_index_securities_stock_structure_sina() returns void as $$
 begin
@@ -315,6 +323,7 @@ perform drop_index_securities_cash_flow_sheet_running_total();
 perform drop_index_securities_profit_sheet_running_total();
 perform drop_index_securities_kpi();
 perform drop_index_securities_stock_structure();
+perform drop_index_securities_stock_structure_sina();
 end;
 $$ language plpgsql;
 
@@ -339,5 +348,6 @@ perform create_index_securities_cash_flow_sheet_running_total();
 perform create_index_securities_profit_sheet_running_total();
 perform create_index_securities_kpi();
 perform create_index_securities_stock_structure();
+perform create_index_securities_stock_structure_sina();
 end;
 $$ language plpgsql;
