@@ -1,0 +1,123 @@
+db/security-postgres-functions.sql
+commit 2c3e101967975526395f28d8b86ba5b74a1bc006
+                                                                                                                     QUERY PLAN                                                                                                                     
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Nested Loop  (cost=45720.78..51759.83 rows=1 width=235) (actual time=1571.247..47923.260 rows=3449 loops=1)
+   Join Filter: ((ss1.code)::text = ("*SELECT* 1".code)::text)
+   Rows Removed by Join Filter: 6053945
+   CTE kpi_c3_npr
+     ->  Subquery Scan on k  (cost=18314.51..21189.04 rows=442 width=13) (actual time=808.111..866.468 rows=3517 loops=1)
+           Filter: (k.row_num = 1)
+           Rows Removed by Filter: 84930
+           ->  WindowAgg  (cost=18314.51..20083.45 rows=88447 width=25) (actual time=808.109..858.818 rows=88447 loops=1)
+                 ->  Sort  (cost=18314.51..18535.63 rows=88447 width=17) (actual time=808.098..817.741 rows=88447 loops=1)
+                       Sort Key: k0.code, k0."time" DESC
+                       Sort Method: quicksort  Memory: 8989kB
+                       ->  Seq Scan on securities_kpi k0  (cost=0.00..11047.47 rows=88447 width=17) (actual time=0.008..36.600 rows=88447 loops=1)
+   CTE kpi_c3_npr_l5
+     ->  Sort  (cost=1551.47..1551.84 rows=147 width=51) (actual time=413.560..414.620 rows=14889 loops=1)
+           Sort Key: k2.code, k2."time"
+           Sort Method: quicksort  Memory: 1548kB
+           ->  Subquery Scan on k2  (cost=1531.88..1546.18 rows=147 width=51) (actual time=341.750..359.929 rows=14889 loops=1)
+                 Filter: (k2.row_num < 6)
+                 Rows Removed by Filter: 6953
+                 ->  WindowAgg  (cost=1531.88..1540.68 rows=440 width=51) (actual time=341.745..356.495 rows=21842 loops=1)
+                       ->  Sort  (cost=1531.88..1532.98 rows=440 width=43) (actual time=341.721..344.015 rows=21842 loops=1)
+                             Sort Key: k0_1.code, k0_1."time" DESC
+                             Sort Method: quicksort  Memory: 2475kB
+                             ->  Sort  (cost=1507.06..1508.16 rows=440 width=43) (actual time=274.504..276.926 rows=21842 loops=1)
+                                   Sort Key: k0_1.code, k0_1."time"
+                                   Sort Method: quicksort  Memory: 2475kB
+                                   ->  Bitmap Heap Scan on securities_kpi k0_1  (cost=11.72..1487.74 rows=440 width=43) (actual time=2.865..31.274 rows=21842 loops=1)
+                                         Recheck Cond: (date_part('month'::text, ("time")::timestamp without time zone) = '12'::double precision)
+                                         Filter: ((round("归属于母公司股东的净利润同比", 2) IS NOT NULL) AND ("time" < now()))
+                                         Rows Removed by Filter: 3529
+                                         Heap Blocks: exact=6757
+                                         ->  Bitmap Index Scan on securities_kpi_idx_month  (cost=0.00..11.61 rows=442 width=0) (actual time=1.857..1.858 rows=25371 loops=1)
+                                               Index Cond: (date_part('month'::text, ("time")::timestamp without time zone) = '12'::double precision)
+   InitPlan 3 (returns $2)
+     ->  Aggregate  (cost=2119.40..2119.41 rows=1 width=4) (actual time=22.942..22.942 rows=1 loops=1)
+           ->  Seq Scan on securities_day_quote dq0  (cost=0.00..1882.52 rows=94752 width=4) (actual time=0.037..12.334 rows=95867 loops=1)
+   ->  Nested Loop  (cost=20818.16..26848.66 rows=1 width=218) (actual time=1463.638..9142.899 rows=3449 loops=1)
+         Join Filter: ((ss1.code)::text = (kpi_c3_npr.code)::text)
+         Rows Removed by Join Filter: 12126684
+         ->  Nested Loop  (cost=20818.16..26834.29 rows=1 width=170) (actual time=655.521..6136.048 rows=3449 loops=1)
+               Join Filter: ((ss1.code)::text = (bsb1.code)::text)
+               Rows Removed by Join Filter: 12243950
+               ->  Nested Loop  (cost=1214.46..7212.10 rows=1 width=122) (actual time=552.331..2933.084 rows=3449 loops=1)
+                     Join Filter: ((ss1.code)::text = (dq1.code)::text)
+                     ->  Nested Loop  (cost=1214.04..7211.59 rows=1 width=105) (actual time=529.271..2843.598 rows=3449 loops=1)
+                           Join Filter: ((max(psrt0."time")) = psrt1."time")
+                           Rows Removed by Join Filter: 82754
+                           ->  Nested Loop  (cost=1213.63..7210.05 rows=1 width=93) (actual time=529.110..2638.322 rows=3449 loops=1)
+                                 Join Filter: ((ss1.code)::text = (psrt0.code)::text)
+                                 Rows Removed by Join Filter: 12126684
+                                 ->  GroupAggregate  (cost=0.42..4920.07 rows=3471 width=11) (actual time=0.033..47.816 rows=3517 loops=1)
+                                       Group Key: psrt0.code
+                                       ->  Index Only Scan using securities_profit_sheet_running_total_pkey on securities_profit_sheet_running_total psrt0  (cost=0.42..4443.12 rows=88447 width=11) (actual time=0.015..25.002 rows=88447 loops=1)
+                                             Heap Fetches: 0
+                                 ->  Materialize  (cost=1213.21..2203.21 rows=1 width=82) (actual time=0.126..0.382 rows=3449 loops=3517)
+                                       ->  Hash Join  (cost=1213.21..2203.20 rows=1 width=82) (actual time=442.206..540.901 rows=3449 loops=1)
+                                             Hash Cond: (((ss1.code)::text = (ss0.code)::text) AND (ss1."time" = (max(ss0."time"))))
+                                             ->  Nested Loop  (cost=3.97..982.62 rows=2160 width=79) (actual time=423.339..508.233 rows=49913 loops=1)
+                                                   ->  HashAggregate  (cost=3.68..5.88 rows=147 width=60) (actual time=423.311..430.785 rows=3517 loops=1)
+                                                         Group Key: kpi_c3_npr_l5.code
+                                                         ->  CTE Scan on kpi_c3_npr_l5  (cost=0.00..2.94 rows=147 width=60) (actual time=413.565..418.535 rows=14889 loops=1)
+                                                   ->  Index Scan using securities_stock_structure_sina_idx_code on securities_stock_structure_sina ss1  (cost=0.29..6.48 rows=15 width=19) (actual time=0.016..0.019 rows=14 loops=3517)
+                                                         Index Cond: ((code)::text = (kpi_c3_npr_l5.code)::text)
+                                             ->  Hash  (cost=1158.18..1158.18 rows=3404 width=11) (actual time=18.846..18.846 rows=3479 loops=1)
+                                                   Buckets: 4096  Batches: 1  Memory Usage: 182kB
+                                                   ->  HashAggregate  (cost=1090.11..1124.14 rows=3404 width=11) (actual time=17.266..17.928 rows=3479 loops=1)
+                                                         Group Key: ss0.code
+                                                         ->  Seq Scan on securities_stock_structure_sina ss0  (cost=0.00..840.07 rows=50007 width=11) (actual time=0.011..4.497 rows=50007 loops=1)
+                           ->  Index Scan using securities_profit_sheet_running_total_pkey on securities_profit_sheet_running_total psrt1  (cost=0.42..1.23 rows=25 width=20) (actual time=0.028..0.053 rows=25 loops=3449)
+                                 Index Cond: ((code)::text = (ss1.code)::text)
+                     ->  Index Scan using securities_day_quote_pkey on securities_day_quote dq1  (cost=0.42..0.50 rows=1 width=17) (actual time=0.016..0.016 rows=1 loops=3449)
+                           Index Cond: (((code)::text = (psrt1.code)::text) AND ("time" = $2))
+               ->  HashAggregate  (cost=19603.70..19609.39 rows=569 width=48) (actual time=0.030..0.607 rows=3551 loops=3449)
+                     Group Key: bsb1.code, bsb1."归属于母公司股东的权益"
+                     ->  Append  (cost=64.01..19600.85 rows=569 width=48) (actual time=1.181..100.490 rows=3551 loops=1)
+                           ->  Hash Join  (cost=64.01..127.25 rows=22 width=15) (actual time=1.178..1.820 rows=28 loops=1)
+                                 Hash Cond: (((bsb1.code)::text = (bsb0.code)::text) AND (bsb1."time" = (max(bsb0."time"))))
+                                 ->  Seq Scan on securities_balance_sheet_bank bsb1  (cost=0.00..59.02 rows=802 width=19) (actual time=0.025..0.300 rows=802 loops=1)
+                                 ->  Hash  (cost=63.59..63.59 rows=28 width=11) (actual time=0.991..0.992 rows=28 loops=1)
+                                       Buckets: 1024  Batches: 1  Memory Usage: 10kB
+                                       ->  HashAggregate  (cost=63.03..63.31 rows=28 width=11) (actual time=0.845..0.864 rows=28 loops=1)
+                                             Group Key: bsb0.code
+                                             ->  Seq Scan on securities_balance_sheet_bank bsb0  (cost=0.00..59.02 rows=802 width=11) (actual time=0.013..0.366 rows=802 loops=1)
+                           ->  Hash Join  (cost=9684.61..19273.21 rows=517 width=17) (actual time=55.869..97.294 rows=3488 loops=1)
+                                 Hash Cond: (((bsg1.code)::text = (bsg0.code)::text) AND (bsg1."time" = (max(bsg0."time"))))
+                                 ->  Seq Scan on securities_balance_sheet_general bsg1  (cost=0.00..9045.83 rows=103383 width=21) (actual time=0.033..15.132 rows=103383 loops=1)
+                                 ->  Hash  (cost=9632.39..9632.39 rows=3482 width=11) (actual time=53.080..53.080 rows=3488 loops=1)
+                                       Buckets: 4096  Batches: 1  Memory Usage: 182kB
+                                       ->  HashAggregate  (cost=9562.75..9597.57 rows=3482 width=11) (actual time=51.480..52.220 rows=3488 loops=1)
+                                             Group Key: bsg0.code
+                                             ->  Seq Scan on securities_balance_sheet_general bsg0  (cost=0.00..9045.83 rows=103383 width=11) (actual time=0.010..16.044 rows=103383 loops=1)
+                           ->  Hash Join  (cost=86.17..171.50 rows=26 width=17) (actual time=0.699..0.751 rows=31 loops=1)
+                                 Hash Cond: (((bss1.code)::text = (bss0.code)::text) AND (bss1."time" = (max(bss0."time"))))
+                                 ->  Seq Scan on securities_balance_sheet_securities bss1  (cost=0.00..80.39 rows=939 width=21) (actual time=0.011..0.151 rows=939 loops=1)
+                                 ->  Hash  (cost=85.70..85.70 rows=31 width=11) (actual time=0.427..0.427 rows=31 loops=1)
+                                       Buckets: 1024  Batches: 1  Memory Usage: 10kB
+                                       ->  HashAggregate  (cost=85.08..85.39 rows=31 width=11) (actual time=0.411..0.417 rows=31 loops=1)
+                                             Group Key: bss0.code
+                                             ->  Seq Scan on securities_balance_sheet_securities bss0  (cost=0.00..80.39 rows=939 width=11) (actual time=0.003..0.183 rows=939 loops=1)
+                           ->  Hash Join  (cost=10.22..20.36 rows=4 width=13) (actual time=0.123..0.129 rows=4 loops=1)
+                                 Hash Cond: (((bsi1.code)::text = (bsi0.code)::text) AND (bsi1."time" = (max(bsi0."time"))))
+                                 ->  Seq Scan on securities_balance_sheet_insurance bsi1  (cost=0.00..9.39 rows=139 width=17) (actual time=0.011..0.027 rows=139 loops=1)
+                                 ->  Hash  (cost=10.16..10.16 rows=4 width=11) (actual time=0.068..0.068 rows=4 loops=1)
+                                       Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                       ->  HashAggregate  (cost=10.09..10.12 rows=4 width=11) (actual time=0.058..0.059 rows=4 loops=1)
+                                             Group Key: bsi0.code
+                                             ->  Seq Scan on securities_balance_sheet_insurance bsi0  (cost=0.00..9.39 rows=139 width=11) (actual time=0.003..0.023 rows=139 loops=1)
+         ->  CTE Scan on kpi_c3_npr  (cost=0.00..8.84 rows=442 width=48) (actual time=0.235..0.546 rows=3517 loops=3449)
+   ->  HashAggregate  (cost=42.33..46.33 rows=200 width=60) (actual time=0.035..11.048 rows=1756 loops=3449)
+         Group Key: "*SELECT* 1".code
+         ->  HashAggregate  (cost=26.14..32.03 rows=589 width=68) (actual time=73.257..76.945 rows=18406 loops=1)
+               Group Key: "*SELECT* 1".code, "*SELECT* 1"."归属于母公司股东的净利润同比", ((0)::bigint)
+               ->  Append  (cost=0.00..21.72 rows=589 width=68) (actual time=0.003..64.778 rows=18406 loops=1)
+                     ->  Subquery Scan on "*SELECT* 1"  (cost=0.00..14.37 rows=442 width=56) (actual time=0.002..60.316 rows=3517 loops=1)
+                           ->  CTE Scan on kpi_c3_npr kpi_c3_npr_1  (cost=0.00..8.84 rows=442 width=52) (actual time=0.001..59.735 rows=3517 loops=1)
+                     ->  CTE Scan on kpi_c3_npr_l5 kpi_c3_npr_l5_1  (cost=0.00..2.94 rows=147 width=68) (actual time=0.002..2.266 rows=14889 loops=1)
+ Planning Time: 43.876 ms
+ Execution Time: 47928.700 ms
+(118 rows)
