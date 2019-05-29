@@ -12,6 +12,7 @@ usage(){
 if [ "$(date -j -f '%Y-%m-%d' $1-12-31)" == "" ];then
     usage
 fi
+year="$1"
 
 if [ ! -n "$2" ] || [ ! "$2" -eq "$2" ]; then
     usage
@@ -19,6 +20,12 @@ fi
 
 if [ ! "$2" -eq 3 ] && [ ! "$2" -eq 6 ] && [ ! "$2" -eq 9 ] && [ ! "$2" -eq 12 ]; then
     usage
+fi
+
+if [ "$2" -eq 3 ] || [ "$2" -eq 6 ] || [ "$2" -eq 9 ];then
+    month=0"$2"
+else
+    month="$2"
 fi
 
 spider="StockFdmtBalanceSheetChinaDeltaSpider"
@@ -60,9 +67,9 @@ if [ "$3" == "" ];then
     do
         jl_file="$DIL_ROOT"/feeds/fdmt_balance_sheet_delta/data/"$code"_"$1".jl
         if [ "$2" -eq 3 ] || [ "$2" -eq 12 ];then
-            count=$(cat "$jl_file" | grep -c "$1"-"$2"-31)
+            count=$(cat "$jl_file" | grep -c "$year"-"$month"-31)
         else
-            count=$(cat "$jl_file" | grep -c "$1"-"$2"-30)
+            count=$(cat "$jl_file" | grep -c "$year"-"$month"-30)
         fi
         if [ "$count" -eq 1 ];then
             csv_file="$DIL_ROOT"/feeds/fdmt_balance_sheet_delta/dbdata/"$code"_"$1".csv
@@ -81,9 +88,9 @@ if [ "$3" == "" ];then
     do
         jl_file="$DIL_ROOT"/feeds/fdmt_balance_sheet_delta/data/"$code"_"$1".jl
         if [ "$2" -eq 3 ] || [ "$2" -eq 12 ];then
-            count=$(cat "$jl_file" | grep -c "$1"-"$2"-31)
+            count=$(cat "$jl_file" | grep -c "$year"-"$month"-31)
         else
-            count=$(cat "$jl_file" | grep -c "$1"-"$2"-30)
+            count=$(cat "$jl_file" | grep -c "$year"-"$month"-30)
         fi
         if [ "$count" -eq 1 ];then
             csv_file="$DIL_ROOT"/feeds/fdmt_balance_sheet_delta/dbdata/"$code"_"$1".csv
@@ -102,9 +109,9 @@ if [ "$3" == "" ];then
     do
         jl_file="$DIL_ROOT"/feeds/fdmt_balance_sheet_delta/data/"$code"_"$1".jl
         if [ "$2" -eq 3 ] || [ "$2" -eq 12 ];then
-            count=$(cat "$jl_file" | grep -c "$1"-"$2"-31)
+            count=$(cat "$jl_file" | grep -c "$year"-"$month"-31)
         else
-            count=$(cat "$jl_file" | grep -c "$1"-"$2"-30)
+            count=$(cat "$jl_file" | grep -c "$year"-"$month"-30)
         fi
         if [ "$count" -eq 1 ];then
             csv_file="$DIL_ROOT"/feeds/fdmt_balance_sheet_delta/dbdata/"$code"_"$1".csv
@@ -123,9 +130,9 @@ if [ "$3" == "" ];then
     do
         jl_file="$DIL_ROOT"/feeds/fdmt_balance_sheet_delta/data/"$code"_"$1".jl
         if [ "$2" -eq 3 ] || [ "$2" -eq 12 ];then
-            count=$(cat "$jl_file" | grep -c "$1"-"$2"-31)
+            count=$(cat "$jl_file" | grep -c "$year"-"$month"-31)
         else
-            count=$(cat "$jl_file" | grep -c "$1"-"$2"-30)
+            count=$(cat "$jl_file" | grep -c "$year"-"$month"-30)
         fi
         if [ "$count" -eq 1 ];then
             csv_file="$DIL_ROOT"/feeds/fdmt_balance_sheet_delta/dbdata/"$code"_"$1".csv
@@ -151,9 +158,9 @@ else
     do
         jl_file="$DIL_ROOT"/feeds/fdmt_balance_sheet_delta/data/"$code"_"$1".jl
         if [ "$2" -eq 3 ] || [ "$2" -eq 12 ];then
-            count=$(cat "$jl_file" | grep -c "$1"-"$2"-31)
+            count=$(cat "$jl_file" | grep -c "$year"-"$month"-31)
         else
-            count=$(cat "$jl_file" | grep -c "$1"-"$2"-30)
+            count=$(cat "$jl_file" | grep -c "$year"-"$month"-30)
         fi
         if [ "$count" -eq 1 ];then
             csv_file="$DIL_ROOT"/feeds/fdmt_balance_sheet_delta/dbdata/"$code"_"$1".csv
@@ -172,9 +179,9 @@ else
     do
         jl_file="$DIL_ROOT"/feeds/fdmt_balance_sheet_delta/data/"$code"_"$1".jl
         if [ "$2" -eq 3 ] || [ "$2" -eq 12 ];then
-            count=$(cat "$jl_file" | grep -c "$1"-"$2"-31)
+            count=$(cat "$jl_file" | grep -c "$year"-"$month"-31)
         else
-            count=$(cat "$jl_file" | grep -c "$1"-"$2"-30)
+            count=$(cat "$jl_file" | grep -c "$year"-"$month"-30)
         fi
         if [ "$count" -eq 1 ];then
             csv_file="$DIL_ROOT"/feeds/fdmt_balance_sheet_delta/dbdata/"$code"_"$1".csv
@@ -193,9 +200,9 @@ else
     do
         jl_file="$DIL_ROOT"/feeds/fdmt_balance_sheet_delta/data/"$code"_"$1".jl
         if [ "$2" -eq 3 ] || [ "$2" -eq 12 ];then
-            count=$(cat "$jl_file" | grep -c "$1"-"$2"-31)
+            count=$(cat "$jl_file" | grep -c "$year"-"$month"-31)
         else
-            count=$(cat "$jl_file" | grep -c "$1"-"$2"-30)
+            count=$(cat "$jl_file" | grep -c "$year"-"$month"-30)
         fi
         if [ "$count" -eq 1 ];then
             csv_file="$DIL_ROOT"/feeds/fdmt_balance_sheet_delta/dbdata/"$code"_"$1".csv
@@ -214,9 +221,9 @@ else
     do
         jl_file="$DIL_ROOT"/feeds/fdmt_balance_sheet_delta/data/"$code"_"$1".jl
         if [ "$2" -eq 3 ] || [ "$2" -eq 12 ];then
-            count=$(cat "$jl_file" | grep -c "$1"-"$2"-31)
+            count=$(cat "$jl_file" | grep -c "$year"-"$month"-31)
         else
-            count=$(cat "$jl_file" | grep -c "$1"-"$2"-30)
+            count=$(cat "$jl_file" | grep -c "$year"-"$month"-30)
         fi
         if [ "$count" -eq 1 ];then
             csv_file="$DIL_ROOT"/feeds/fdmt_balance_sheet_delta/dbdata/"$code"_"$1".csv
