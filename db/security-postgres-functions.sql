@@ -558,17 +558,17 @@ $$ language plpgsql;
 drop function if exists securities_kpi_c4;
 create or replace function securities_kpi_c4(start_year integer, end_year integer)
 returns table (code varchar(6), "time" date,
-               "每股现金分红" numeric(10,2), "总股本" numeric(20,2),
-               "现金分红总额" numeric(20,2), "归属于母公司股东的净利润" numeric(20,2), "分红比例%" numeric(10,2)) as $$
+               "每股分红" numeric(10,2), "总股本" numeric(20,2),
+               "分红总额" numeric(20,2), "归属于母公司股东的净利润" numeric(20,2), "分红率%" numeric(10,2)) as $$
 begin
 return query
 select
   dvdb.code, dvdb.time,
-  round(dvdb.现金分红 / 10, 2) "每股现金分红",
+  round(dvdb.现金分红 / 10, 2) "每股分红",
   ssb.总股本,
-  round(dvdb.现金分红 * ssb.总股本 * 1000, 2) 现金分红总额,
+  round(dvdb.现金分红 * ssb.总股本 * 1000, 2) 分红总额,
   psb.归属于母公司的净利润,
-  case when psb.归属于母公司的净利润 = 0 then null else round(dvdb.现金分红 * ssb.总股本 * 1000 / psb.归属于母公司的净利润 * 100, 2) end "分红比例%"
+  case when psb.归属于母公司的净利润 = 0 then null else round(dvdb.现金分红 * ssb.总股本 * 1000 / psb.归属于母公司的净利润 * 100, 2) end "分红率%"
 from securities_dividend dvdb
 join lateral (
   select ss0.code, ss0.time, ss0.总股本 from securities_stock_structure_sina ss0 where ss0.code = dvdb.code and ss0.time <= dvdb.预案公告日 order by ss0.time desc limit 1
@@ -580,11 +580,11 @@ where
 union
 select
   dvdg.code, dvdg.time,
-  round(dvdg.现金分红 / 10, 2) "每股现金分红",
+  round(dvdg.现金分红 / 10, 2) "每股分红",
   ssg.总股本,
-  round(dvdg.现金分红 * ssg.总股本 * 1000, 2) 现金分红总额,
+  round(dvdg.现金分红 * ssg.总股本 * 1000, 2) 分红总额,
   psg.归属于母公司所有者的净利润,
-  case when psg.归属于母公司所有者的净利润 = 0 then null else round(dvdg.现金分红 * ssg.总股本 * 1000 / psg.归属于母公司所有者的净利润 * 100, 2) end "分红比例%"
+  case when psg.归属于母公司所有者的净利润 = 0 then null else round(dvdg.现金分红 * ssg.总股本 * 1000 / psg.归属于母公司所有者的净利润 * 100, 2) end "分红率%"
 from securities_dividend dvdg
 join lateral (
   select ss0.code, ss0.time, ss0.总股本 from securities_stock_structure_sina ss0 where ss0.code = dvdg.code and ss0.time <= dvdg.预案公告日 order by ss0.time desc limit 1
@@ -596,11 +596,11 @@ where
 union
 select
   dvdi.code, dvdi.time,
-  round(dvdi.现金分红 / 10, 2) "每股现金分红",
+  round(dvdi.现金分红 / 10, 2) "每股分红",
   ssi.总股本,
-  round(dvdi.现金分红 * ssi.总股本 * 1000, 2) 现金分红总额,
+  round(dvdi.现金分红 * ssi.总股本 * 1000, 2) 分红总额,
   psi.归属于母公司股东的净利润,
-  case when psi.归属于母公司股东的净利润 = 0 then null else round(dvdi.现金分红 * ssi.总股本 * 1000 / psi.归属于母公司股东的净利润 * 100, 2) end "分红比例%"
+  case when psi.归属于母公司股东的净利润 = 0 then null else round(dvdi.现金分红 * ssi.总股本 * 1000 / psi.归属于母公司股东的净利润 * 100, 2) end "分红率%"
 from securities_dividend dvdi
 join lateral (
   select ss0.code, ss0.time, ss0.总股本 from securities_stock_structure_sina ss0 where ss0.code = dvdi.code and ss0.time <= dvdi.预案公告日 order by ss0.time desc limit 1
@@ -612,11 +612,11 @@ where
 union
 select
   dvds.code, dvds.time,
-  round(dvds.现金分红 / 10, 2) "每股现金分红",
+  round(dvds.现金分红 / 10, 2) "每股分红",
   sss.总股本,
-  round(dvds.现金分红 * sss.总股本 * 1000, 2) 现金分红总额,
+  round(dvds.现金分红 * sss.总股本 * 1000, 2) 分红总额,
   pss.归属于母公司所有者的净利润,
-  case when pss.归属于母公司所有者的净利润 = 0 then null else round(dvds.现金分红 * sss.总股本 * 1000 / pss.归属于母公司所有者的净利润 * 100, 2) end "分红比例%"
+  case when pss.归属于母公司所有者的净利润 = 0 then null else round(dvds.现金分红 * sss.总股本 * 1000 / pss.归属于母公司所有者的净利润 * 100, 2) end "分红率%"
 from securities_dividend dvds
 join lateral (
   select ss0.code, ss0.time, ss0.总股本 from securities_stock_structure_sina ss0 where ss0.code = dvds.code and ss0.time <= dvds.预案公告日 order by ss0.time desc limit 1
@@ -630,21 +630,27 @@ $$ language plpgsql;
 
 drop function if exists securities_kpi_c5;
 create or replace function securities_kpi_c5(end_year integer)
-returns table (code varchar(6), "价格日期" date, "价格" numeric(10,4), "最近五次分红比例" text,
-                "分红比例一%" numeric(10,2), "潜在分红一vs价格%" numeric(10,2),
-                "分红比例二%" numeric(10,2), "潜在分红二vs价格%" numeric(10,2),
-                "分红比例三%" numeric(10,2), "潜在分红三vs价格%" numeric(10,2)) as $$
+returns table (code varchar(6), "价格日期" date, "价格" numeric(10,4),
+               "过去五年分红年份" text, "过去五年分红率%" text,
+               "累计分红" numeric(20,2), "累计股东净利润" numeric(20,2), "累计分红率%" numeric(10,2),
+               "分红率1%" numeric(10,2), "股息率1%" numeric(10,2),
+               "分红率2%" numeric(10,2), "股息率2%" numeric(10,2),
+               "分红率3%" numeric(10,2), "股息率3%" numeric(10,2)) as $$
 begin
 return query
 with
 dvd_ratio_annual as (
   select t1.code, t1.year || '12-31' "time",
-    round(t1.现金分红总额 / t2.归属于母公司股东的净利润 * 100, 2) "分红比例%",
+    t1.分红总额,
+    t2.归属于母公司股东的净利润,
+    round(t1.分红总额 / t2.归属于母公司股东的净利润 * 100, 2) "分红率%",
     row_number() over (partition by t1.code order by t1.year desc)
   from (
-    select t.code, extract(year from t.time) "year", sum(现金分红总额) 现金分红总额 from securities_kpi_c4(end_year - 5, end_year) t group by 1,2
+    -- securities_kpi_c4返回的"分红总额"不是累计值，要用sum来计算年度分红总额，以应对一年有两次分红的股票。
+    select t.code, extract(year from t.time) "year", sum(分红总额) 分红总额 from securities_kpi_c4(end_year - 5, end_year) t group by 1,2
   ) t1
   join lateral (
+    -- securities_kpi_c4返回的"归属于母公司股东的净利润"是累计值, 不需要sum。
     select "归属于母公司股东的净利润" from securities_kpi_c4(end_year - 5, end_year) t
     where t.code = t1.code and extract(year from t.time) = t1."year" and extract(month from t.time) = 12
   ) t2 on true
@@ -652,22 +658,32 @@ dvd_ratio_annual as (
 select
   dr1.code, dq.time "价格日期",
   round(dq.price, 2) "价格",
-  dr1."过去五年分红比例",
-  dr2."分红比例一%",
-  case when ss."总股本" <> 0 and dq.price <>0 then round(psrt."归属于母公司股东的净利润" * dr2."分红比例一%" / ss."总股本" / dq.price / 10000, 2) else null end "潜在分红一vs价格%",
-  dr2."分红比例二%",
-  case when ss."总股本" <> 0 and dq.price <>0 then round(psrt."归属于母公司股东的净利润" * dr2."分红比例二%" / ss."总股本" / dq.price / 10000, 2) else null end "潜在分红二vs价格%",
-  dr2."分红比例三%",
-  case when ss."总股本" <> 0 and dq.price <>0 then round(psrt."归属于母公司股东的净利润" * dr2."分红比例三%" / ss."总股本" / dq.price / 10000, 2) else null end "潜在分红三vs价格%"
+  dr1."过去五年分红年份",
+  dr1."过去五年分红率",
+  dr1."累计分红",
+  dr1."累计归属于母公司股东的净利润" "累计股东净利润",
+  dr1."累计分红率%",
+  dr2."分红率1%",
+  case when ss."总股本" <> 0 and dq.price <>0 then round(psrt."归属于母公司股东的净利润" * dr2."分红率1%" / ss."总股本" / dq.price / 10000, 2) else null end "股息率1%",
+  dr2."分红率2%",
+  case when ss."总股本" <> 0 and dq.price <>0 then round(psrt."归属于母公司股东的净利润" * dr2."分红率2%" / ss."总股本" / dq.price / 10000, 2) else null end "股息率2%",
+  dr2."分红率3%",
+  case when ss."总股本" <> 0 and dq.price <>0 then round(psrt."归属于母公司股东的净利润" * dr2."分红率3%" / ss."总股本" / dq.price / 10000, 2) else null end "股息率3%"
 from (
-  select dr.code, array_to_string(array_agg(dr."分红比例%"), '|') "过去五年分红比例"
-  from (select * from dvd_ratio_annual order by time) dr
-  where dr.row_number < 6 group by dr.code having count(dr."分红比例%") = 5
+  select
+    dr.code,
+    array_to_string(array_agg(substring(dr.time from 1 for 4)), '|') "过去五年分红年份",
+    array_to_string(array_agg(dr."分红率%"), '|') "过去五年分红率",
+    sum(dr.分红总额) "累计分红",
+    sum(dr.归属于母公司股东的净利润) "累计归属于母公司股东的净利润",
+    round(sum(dr.分红总额) / sum(dr.归属于母公司股东的净利润) * 100, 2) "累计分红率%"
+  from (select * from dvd_ratio_annual dra order by dra.code, dra.time) dr
+  where dr.row_number < 6 group by dr.code having count(dr."分红率%") = 5
 ) dr1
 join (
-  select dr.code, (array_agg("分红比例%"))[1] "分红比例一%", (array_agg("分红比例%"))[2] "分红比例二%", (array_agg("分红比例%"))[3] "分红比例三%"
+  select dr.code, (array_agg("分红率%"))[1] "分红率1%", (array_agg("分红率%"))[2] "分红率2%", (array_agg("分红率%"))[3] "分红率3%"
   from (
-    select dvd.code, "分红比例%" from dvd_ratio_annual dvd where row_number < 4 order by dvd.code, "分红比例%"
+    select dvd.code, "分红率%" from dvd_ratio_annual dvd where row_number < 4 order by dvd.code, "分红率%"
   ) dr
   group by dr.code
 ) dr2 on dr1.code = dr2.code
