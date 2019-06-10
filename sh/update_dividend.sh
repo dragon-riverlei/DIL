@@ -34,7 +34,7 @@ fi
 
 cd "$DIL_ROOT/crawl/crawl"
 echo "scraping stock dividend $year$month from web..."
-# scrapy crawl StockDividendChinaSpider -a years="$year$month"
+scrapy crawl StockDividendChinaSpider -a years="$year$month"
 echo "scraping done."
 cd "$DIL_ROOT/"
 echo "loading stock dividend to securities_dividend..."
