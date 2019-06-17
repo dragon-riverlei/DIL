@@ -1512,3 +1512,132 @@ and k3.市值 < 100000000000.0
 order by k3.市盈率, k3.市盈率vs净利润增长率;
 end;
 $$ LANGUAGE plpgsql;
+
+drop function if exists short_list_from_kpi_c5_1;
+create or replace function short_list_from_kpi_c5_1(end_year integer)
+returns table (name varchar(10), code varchar(6),
+               "价格日期" date, "价格" numeric(10,4),
+               "过去五年分红年份" text, "过去五年分红率%" text,
+               "累计分红_亿" numeric(20,2), "累计股东净利润_亿" numeric(20,2), "累计分红率%" numeric(10,2),
+               "股息率1%" numeric(10,2), "股息率2%" numeric(10,2), "股息率3%" numeric(10,2)
+) as $$
+begin
+return query
+select sc.name, k5.* from (
+  select
+    kpi_c5.code,
+    kpi_c5."价格日期",
+    kpi_c5."价格",
+    kpi_c5."过去五年分红年份",
+    kpi_c5."过去五年分红率%",
+    round(kpi_c5."累计分红" / 100000000.00, 2) "累计分红_亿",
+    round(kpi_c5."累计股东净利润" / 100000000.00, 2) "累计股东净利润_亿",
+    kpi_c5."累计分红率%",
+    kpi_c5."股息率1%",
+    kpi_c5."股息率2%",
+    kpi_c5."股息率3%"
+  from securities_kpi_c5(end_year) kpi_c5
+) k5
+join securities_code sc on sc.code = k5.code
+where k5."累计分红_亿" > 1000.00    -- > 1000亿
+order by k5."累计分红_亿" desc;
+end;
+$$ LANGUAGE plpgsql;
+
+drop function if exists short_list_from_kpi_c5_2;
+create or replace function short_list_from_kpi_c5_2(end_year integer)
+returns table (name varchar(10), code varchar(6),
+               "价格日期" date, "价格" numeric(10,4),
+               "过去五年分红年份" text, "过去五年分红率%" text,
+               "累计分红_亿" numeric(20,2), "累计股东净利润_亿" numeric(20,2), "累计分红率%" numeric(10,2),
+               "股息率1%" numeric(10,2), "股息率2%" numeric(10,2), "股息率3%" numeric(10,2)
+) as $$
+begin
+return query
+select sc.name, k5.* from (
+  select
+    kpi_c5.code,
+    kpi_c5."价格日期",
+    kpi_c5."价格",
+    kpi_c5."过去五年分红年份",
+    kpi_c5."过去五年分红率%",
+    round(kpi_c5."累计分红" / 100000000.00, 2) "累计分红_亿",
+    round(kpi_c5."累计股东净利润" / 100000000.00, 2) "累计股东净利润_亿",
+    kpi_c5."累计分红率%",
+    kpi_c5."股息率1%",
+    kpi_c5."股息率2%",
+    kpi_c5."股息率3%"
+  from securities_kpi_c5(end_year) kpi_c5
+) k5
+join securities_code sc on sc.code = k5.code
+where
+  k5."累计分红_亿" < 1000.00       -- < 1000亿
+  and k5."累计分红_亿" > 500.00    -- > 500亿
+order by k5."累计分红_亿" desc;
+end;
+$$ LANGUAGE plpgsql;
+
+drop function if exists short_list_from_kpi_c5_3;
+create or replace function short_list_from_kpi_c5_3(end_year integer)
+returns table (name varchar(10), code varchar(6),
+               "价格日期" date, "价格" numeric(10,4),
+               "过去五年分红年份" text, "过去五年分红率%" text,
+               "累计分红_亿" numeric(20,2), "累计股东净利润_亿" numeric(20,2), "累计分红率%" numeric(10,2),
+               "股息率1%" numeric(10,2), "股息率2%" numeric(10,2), "股息率3%" numeric(10,2)
+) as $$
+begin
+return query
+select sc.name, k5.* from (
+  select
+    kpi_c5.code,
+    kpi_c5."价格日期",
+    kpi_c5."价格",
+    kpi_c5."过去五年分红年份",
+    kpi_c5."过去五年分红率%",
+    round(kpi_c5."累计分红" / 100000000.00, 2) "累计分红_亿",
+    round(kpi_c5."累计股东净利润" / 100000000.00, 2) "累计股东净利润_亿",
+    kpi_c5."累计分红率%",
+    kpi_c5."股息率1%",
+    kpi_c5."股息率2%",
+    kpi_c5."股息率3%"
+  from securities_kpi_c5(end_year) kpi_c5
+) k5
+join securities_code sc on sc.code = k5.code
+where
+  k5."累计分红_亿" < 500.00        -- < 500亿
+  and k5."累计分红_亿" > 100.00    -- > 100亿
+order by k5."累计分红_亿" desc;
+end;
+$$ LANGUAGE plpgsql;
+
+drop function if exists short_list_from_kpi_c5_0;
+create or replace function short_list_from_kpi_c5_0(end_year integer, min_cash_dvd numeric(10,2))
+returns table (name varchar(10), code varchar(6),
+               "价格日期" date, "价格" numeric(10,4),
+               "过去五年分红年份" text, "过去五年分红率%" text,
+               "累计分红_亿" numeric(20,2), "累计股东净利润_亿" numeric(20,2), "累计分红率%" numeric(10,2),
+               "股息率1%" numeric(10,2), "股息率2%" numeric(10,2), "股息率3%" numeric(10,2)
+) as $$
+begin
+return query
+select sc.name, k5.* from (
+  select
+    kpi_c5.code,
+    kpi_c5."价格日期",
+    kpi_c5."价格",
+    kpi_c5."过去五年分红年份",
+    kpi_c5."过去五年分红率%",
+    round(kpi_c5."累计分红" / 100000000.00, 2) "累计分红_亿",
+    round(kpi_c5."累计股东净利润" / 100000000.00, 2) "累计股东净利润_亿",
+    kpi_c5."累计分红率%",
+    kpi_c5."股息率1%",
+    kpi_c5."股息率2%",
+    kpi_c5."股息率3%"
+  from securities_kpi_c5(end_year) kpi_c5
+) k5
+join securities_code sc on sc.code = k5.code
+where
+  k5."累计分红_亿" > min_cash_dvd
+order by k5."累计分红_亿" desc;
+end;
+$$ LANGUAGE plpgsql;
