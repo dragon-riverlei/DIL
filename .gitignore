@@ -21,4 +21,5 @@ feeds/stock_structure/data
 feeds/stock_structure/dbdata
 
 feeds/stock_day_quote_china.jl
+feeds/tdx_data/vipdoc
 tmp/

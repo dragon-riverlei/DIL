@@ -46,6 +46,16 @@ create table if not exists securities_day_quote (
   primary key (code, time)
 );
 
+create table if not exists securities_day_price (
+  time date not null, -- 日期
+  code varchar(6) not null, -- 证券代码
+  open_price numeric(10,4) not null, -- 开盘价格（元）
+  close_price numeric(10,4) not null, -- 收盘价格（元）
+  high_price numeric(10,4) not null, -- 最高价格（元）
+  low_price numeric(10,4) not null, -- 最低价格（元）
+  primary key (code, time)
+);
+
 create table if not exists securities_balance_sheet_bank (
   code varchar(6) not null, -- 证券代码
   time date not null, -- 日期
