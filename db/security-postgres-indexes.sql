@@ -1,3 +1,17 @@
+drop function if exists drop_index_securities_day_price;
+create or replace function drop_index_securities_day_price() returns void as $$
+begin
+drop index if exists securities_day_price_idx_time;
+end;
+$$ language plpgsql;
+
+drop function if exists create_index_securities_day_price;
+create or replace function create_index_securities_day_price() returns void as $$
+begin
+create index securities_day_price_idx_time on securities_day_price (time);
+end;
+$$ language plpgsql;
+
 drop function if exists drop_index_securities_ipo;
 create or replace function drop_index_securities_ipo() returns void as $$
 begin
@@ -305,6 +319,7 @@ $$ language plpgsql;
 drop function if exists drop_all_indexes;
 create or replace function drop_all_indexes() returns void as $$
 begin
+perform drop_index_securities_day_price();
 perform drop_index_securities_ipo();
 perform drop_index_securities_dividend();
 perform drop_index_securities_balance_sheet_bank();
@@ -330,6 +345,7 @@ $$ language plpgsql;
 drop function if exists create_all_indexes;
 create or replace function create_all_indexes() returns void as $$
 begin
+perform create_index_securities_day_price();
 perform create_index_securities_ipo();
 perform create_index_securities_dividend();
 perform create_index_securities_balance_sheet_bank();
