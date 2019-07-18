@@ -1002,3 +1002,24 @@ create table if not exists securities_stock_structure_sina (
   总股本 numeric(20,2) not null,
   primary key (code, time)
 );
+
+create table if not exists securities_strategy (
+  id integer not null,
+  name varchar(30),
+  description text,
+  primary key (id)
+);
+
+create table if not exists securities_strategy_deduction (
+  strategy_id integer not null,
+  package_id integer not null, -- 股票集合ID, 单只股票的集合ID为0
+  code varchar(6) not null,
+  time date not null,
+  transaction_type varchar(30) not null,
+  cash numeric(20, 2) not null,
+  cash_balance numeric(20, 2) not null,
+  price numeric(10,4),
+  volume numeric(20,2) not null,
+  volume_balance numeric(20,2) not null,
+  primary key (strategy_id, package_id, code, time, transaction_type)
+);
