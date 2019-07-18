@@ -38,7 +38,7 @@ load_stock_day_quote_china(){
 \x
 create temp table tmp_table as select * from "$table" with no data;
 copy tmp_table from '$DIL_ROOT/feeds/$csv_file' with delimiter as ',' csv;
-delete from "$table" where time = (select max(time) from tmp_table);
+delete from "$table";
 insert into "$table" select * from tmp_table;
 EOF
     rm "$DIL_ROOT"/feeds/"$csv_file"
