@@ -38,7 +38,7 @@ def extract(fileName):
              str(close),
              str(high),
              str(low)])
-        print item
+        print(item)
         b = b + 32
         e = e + 32
 

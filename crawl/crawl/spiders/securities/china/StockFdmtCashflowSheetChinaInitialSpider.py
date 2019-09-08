@@ -31,7 +31,7 @@ class StockFdmtCashflowSheetChinaInitialSpider(scrapy.Spider):
             args=[DIL_ROOT + '/sh/find_regular_report_not_scraped.sh', 'cfs'],
             stdout=subprocess.PIPE)
         out, err = cmd.communicate()
-        missings = out.split('\n')
+        missings = out.decode().split('\n')
         for missing in missings:
             if len(missing) > 0:
                 url = self.cash_flow_sheet_url_tpl.format(missing)

@@ -45,7 +45,7 @@ class StockFdmtBalanceSheetChinaDeltaSpider(scrapy.Spider):
                 ],
                 stdout=subprocess.PIPE)
             out, err = cmd.communicate()
-            missings = out.split('\n')
+            missings = out.decode().split('\n')
 
         self.logger.info(
             "Start to scrape stock fundamental delta balance sheet for year " +

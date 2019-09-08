@@ -45,7 +45,7 @@ class StockStructureChinaSpider(scrapy.Spider):
                 ],
                 stdout=subprocess.PIPE)
             out, err = cmd.communicate()
-            missings = out.split('\n')
+            missings = out.decode().split('\n')
             for missing in missings:
                 if len(missing) > 0:
                     url = self.url_tpl.format(missing)
